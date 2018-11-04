@@ -1,0 +1,6 @@
+# -*- coding: utf-8 -*-
+
+#keight
+oktest      >= 0.15.2
+Benchmarker >= 4.0, < 5.0
+kook        >= 0.7.2
