@@ -8,7 +8,7 @@ from oktest import ok, test, subject, situation, at_end
 
 from minikeight import (
     Router, LinearRouter, PrefixRouter, FixedRouter,
-    NaiveRegexpRouter, SimpleRegexpRouter, OptimizedRegexpRouter,
+    NaiveRegexpRouter, SmartRegexpRouter, OptimizedRegexpRouter,
     StateMachineRouter,
 )
 from mock_handler import HomeAPI, BooksAPI, BookCommentsAPI, OrdersAPI, mapping
@@ -171,8 +171,8 @@ class NaiveRegexpRouter_TestCase(Router_TestBase):
     ROUTER_CLASS = NaiveRegexpRouter
 
 
-class SimpleRegexpRouter_TestCase(Router_TestBase):
-    ROUTER_CLASS = SimpleRegexpRouter
+class SmartRegexpRouter_TestCase(Router_TestBase):
+    ROUTER_CLASS = SmartRegexpRouter
 
 
 class OptimizedRegexpRouter_TestCase(Router_TestBase):

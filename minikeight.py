@@ -220,7 +220,7 @@ class NaiveRegexpRouter(Router):
         return handler_class, handler_methods, param_args
 
 
-class SimpleRegexpRouter(Router):
+class SmartRegexpRouter(Router):
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having parameters

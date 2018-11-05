@@ -6,7 +6,7 @@ from benchmarker import Benchmarker
 from minikeight import (
     on, RequestHandler,
     LinearRouter, PrefixRouter, FixedRouter,
-    NaiveRegexpRouter, SimpleRegexpRouter, OptimizedRegexpRouter,
+    NaiveRegexpRouter, SmartRegexpRouter, OptimizedRegexpRouter,
     StateMachineRouter,
 )
 
@@ -99,7 +99,7 @@ debug = False
 with Benchmarker(loop, width=43) as bench:
 
     router_classes = (LinearRouter, PrefixRouter, FixedRouter,
-                      NaiveRegexpRouter, SimpleRegexpRouter, OptimizedRegexpRouter,
+                      NaiveRegexpRouter, SmartRegexpRouter, OptimizedRegexpRouter,
                       StateMachineRouter)
     urlpaths = (
         '/api/v1/aaa/',
