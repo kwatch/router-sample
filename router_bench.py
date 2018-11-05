@@ -1,5 +1,11 @@
 # -*- coding: utf-8 -*-
 
+##
+## See:
+##      https://pythonhosted.org/Benchmarker/
+## for details of 'benchmarker.py'.
+##
+
 import sys
 from benchmarker import Benchmarker
 
@@ -95,7 +101,6 @@ except NameError:
 
 #loop = 1000 * 1000
 loop = 1000 * 100
-debug = False
 with Benchmarker(loop, width=43) as bench:
 
     router_classes = (LinearRouter, PrefixRouter, FixedRouter,
@@ -107,6 +112,8 @@ with Benchmarker(loop, width=43) as bench:
         '/api/v1/zzz/',
         '/api/v1/zzz/789.json',
     )
+    debug = bench.properties.get('debug', False)
+
     for router_class in router_classes:
         for urlpath in urlpaths:
 
