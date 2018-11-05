@@ -180,6 +180,47 @@ class FixedRouter(Router):
         return None
 
 
+class NaiveRegexpRouter(Router):
+
+    def __init__(self, mapping):
+        self._mapping_dict = {}   # for urlpath having parameters
+        self._mapping_list = []   # for urlpath having no parameters
+        all = []; i = 0; pos = 0
+        for tupl in self._traverse(mapping, ""):
+            path_pat, handler_class, handler_methods = tupl
+            path_prefix = path_pat.split('{', 1)[0]
+            if path_pat == path_prefix:
+                self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
+            else:
+                path_rexp, param_names, param_funcs = self._compile(path_pat)
+                t = (path_pat, pos + 1, len(param_names),
+                     handler_class, handler_methods, param_names, param_funcs)
+                self._mapping_list.append(t)
+                all.append("(?P<_%s>%s)" % (i, path_rexp.pattern))
+                i += 1; pos += 1 + len(param_names)
+        self._all_regexp = re.compile("|".join(all))
+
+    def find(self, req_path):
+        tupl = self._mapping_dict.get(req_path)
+        if tupl:
+            return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        m = self._all_regexp.match(req_path)
+        if m is None:
+            return None
+        for k, v in m.groupdict().items():
+            if v:
+                i = int(k[1:])
+                break
+        else:
+            assert false, "unreachable"
+        t = self._mapping_list[i]
+        _, pos, n, handler_class, handler_methods, _, param_funcs = t
+        params = m.groups()[pos:pos+n]
+        param_args = [ (f(s) if f is not None else s)
+                           for s, f in zip(params, param_funcs) ]
+        return handler_class, handler_methods, param_args
+
+
 class SimpleRegexpRouter(Router):
 
     def __init__(self, mapping):
