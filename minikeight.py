@@ -100,7 +100,8 @@ class Router(object):
         return re.sub(r'[.*+?^$|\[\]{}()]', _fn, s)
 
 
-class LinearRouter(Router):
+class NaiveLinearRouter(Router):
+    """Linear (naive)"""
 
     def __init__(self, mapping):
         self._mapping_list = []
@@ -122,7 +123,8 @@ class LinearRouter(Router):
         return None
 
 
-class PrefixRouter(Router):
+class PrefixLinearRouter(Router):
+    """Linear (prefixstr)"""
 
     def __init__(self, mapping):
         self._mapping_list = []
@@ -147,7 +149,8 @@ class PrefixRouter(Router):
         return None
 
 
-class FixedRouter(Router):
+class FixedLinearRouter(Router):
+    """Linear (fixedpath)"""
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having parameters
@@ -181,6 +184,7 @@ class FixedRouter(Router):
 
 
 class NaiveRegexpRouter(Router):
+    """Regexp (naive)"""
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having parameters
@@ -221,6 +225,7 @@ class NaiveRegexpRouter(Router):
 
 
 class SmartRegexpRouter(Router):
+    """Regexp (smart)"""
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having parameters
@@ -256,6 +261,7 @@ class SmartRegexpRouter(Router):
 
 
 class OptimizedRegexpRouter(Router):
+    """Regexp (optimized)"""
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having parameters
@@ -313,6 +319,7 @@ class OptimizedRegexpRouter(Router):
 
 
 class StateMachineRouter(Router):
+    """StateMachine"""
 
     def _date(s):
         a = s.split('-')
@@ -576,7 +583,7 @@ class Application(object):
         if isinstance(mapping, Router):
             self._router = mapping
         else:
-            self._router = LinearRouter(mapping)
+            self._router = NaiveLinearRouter(mapping)
 
     def __call__(self, env, start_response):
         status, headers, body = self.handle_request(Request(env), Response())
