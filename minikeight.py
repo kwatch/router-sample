@@ -155,10 +155,10 @@ class FixedRouter(Router):
         append = self._mapping_list.append
         for tupl in self._traverse(mapping, ""):
             path_pat, handler_class, handler_methods = tupl
-            path_prefix = path_pat.split('{', 1)[0]
-            if path_pat == path_prefix:
+            if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
             else:
+                path_prefix = path_pat.split('{', 1)[0]
                 path_rexp, param_names, param_funcs = self._compile(path_pat)
                 t = (path_pat, path_prefix, path_rexp,
                      handler_class, handler_methods, param_names, param_funcs)
@@ -188,8 +188,7 @@ class NaiveRegexpRouter(Router):
         all = []; i = 0; pos = 0
         for tupl in self._traverse(mapping, ""):
             path_pat, handler_class, handler_methods = tupl
-            path_prefix = path_pat.split('{', 1)[0]
-            if path_pat == path_prefix:
+            if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
             else:
                 path_rexp, param_names, param_funcs = self._compile(path_pat)
@@ -229,8 +228,7 @@ class SimpleRegexpRouter(Router):
         all = []
         for tupl in self._traverse(mapping, ""):
             path_pat, handler_class, handler_methods = tupl
-            path_prefix = path_pat.split('{', 1)[0]
-            if path_pat == path_prefix:
+            if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
             else:
                 path_rexp, param_names, param_funcs = self._compile(path_pat)
@@ -265,8 +263,7 @@ class OptimizedRegexpRouter(Router):
         all = []
         for tupl in self._traverse(mapping, "", all):
             path_pat, handler_class, handler_methods = tupl
-            path_prefix = path_pat.split('{', 1)[0]
-            if path_pat == path_prefix:
+            if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
             else:
                 path_rexp, param_names, param_funcs = self._compile(path_pat)
