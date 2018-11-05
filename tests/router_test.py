@@ -7,7 +7,8 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from oktest import ok, test, subject, situation, at_end
 
 from minikeight import (
-    Router, LinearRouter, PrefixRouter, FixedRouter,
+    Router,
+    NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, OptimizedRegexpRouter,
     StateMachineRouter,
 )
@@ -155,16 +156,16 @@ class Router_TestBase(object):
             self._test_suffix_pattern(router)
 
 
-class LinearRouter_TestCase(Router_TestBase):
-    ROUTER_CLASS = LinearRouter
+class NaiveLinearRouter_TestCase(Router_TestBase):
+    ROUTER_CLASS = NaiveLinearRouter
 
 
-class PrefixRouter_TestCase(Router_TestBase):
-    ROUTER_CLASS = PrefixRouter
+class PrefixLinearRouter_TestCase(Router_TestBase):
+    ROUTER_CLASS = PrefixLinearRouter
 
 
-class FixedRouter_TestCase(Router_TestBase):
-    ROUTER_CLASS = FixedRouter
+class FixedLinearRouter_TestCase(Router_TestBase):
+    ROUTER_CLASS = FixedLinearRouter
 
 
 class NaiveRegexpRouter_TestCase(Router_TestBase):

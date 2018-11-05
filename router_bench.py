@@ -11,7 +11,7 @@ from benchmarker import Benchmarker
 
 from minikeight import (
     on, RequestHandler,
-    LinearRouter, PrefixRouter, FixedRouter,
+    NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, OptimizedRegexpRouter,
     StateMachineRouter,
 )
@@ -103,7 +103,7 @@ except NameError:
 loop = 1000 * 100
 with Benchmarker(loop, width=43) as bench:
 
-    router_classes = (LinearRouter, PrefixRouter, FixedRouter,
+    router_classes = (NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
                       NaiveRegexpRouter, SmartRegexpRouter, OptimizedRegexpRouter,
                       StateMachineRouter)
     urlpaths = (
