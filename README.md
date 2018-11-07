@@ -7,6 +7,8 @@ What's this?
 
 Sample code of Router classes.
 
+See [presentation slide](http://bit.ly/fastest_router) for details.
+
 
 Requirements
 ------------
