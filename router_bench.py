@@ -119,8 +119,7 @@ def validate(urlpath, result):
         assert result == (DummyAPI, DummyAPI.do_index, [])
 
 
-#loop = 1000 * 1000
-loop = 1000 * 100
+loop = 1000 * 1000
 with Benchmarker(loop, width=38) as bench:
 
     debug = bench.properties.get('debug', False)
