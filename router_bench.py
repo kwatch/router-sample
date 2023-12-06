@@ -106,9 +106,11 @@ except NameError:
 loop = 1000 * 100
 with Benchmarker(loop, width=43) as bench:
 
-    router_classes = (NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
-                      NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
-                      OptimizedRegexpRouter, StateMachineRouter)
+    router_classes = (
+        NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
+        NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter, OptimizedRegexpRouter,
+        StateMachineRouter,
+    )
     urlpaths = (
         '/api/v1/aaa/',
         '/api/v1/aaa/123.json',
