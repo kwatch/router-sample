@@ -66,7 +66,7 @@ class DummyAPI(RequestHandler):
 ##
 
 mapping = [
-    (r'/api/v1', [
+    (r'/api', [
         (r'/aaa'    , DummyAPI),
         (r'/bbb'    , DummyAPI),
         (r'/ccc'    , DummyAPI),
@@ -112,10 +112,10 @@ with Benchmarker(loop, width=43) as bench:
         StateMachineRouter,
     )
     urlpaths = (
-        '/api/v1/aaa/',
-        '/api/v1/aaa/123.json',
-        '/api/v1/zzz/',
-        '/api/v1/zzz/789.json',
+        '/api/aaa/',
+        '/api/aaa/123.json',
+        '/api/zzz/',
+        '/api/zzz/789.json',
     )
     debug = bench.properties.get('debug', False)
 
