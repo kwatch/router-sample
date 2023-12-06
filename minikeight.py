@@ -85,8 +85,10 @@ class Router(object):
                 raise RouterError("%s: parameter name '%s' duplicated." % (urlpath_pattern, pname))
             param_names.append(pname)
             param_funcs.append(pfunc)
-            paren = r'(' if grouping else r'(?:'
-            arr.extend((paren, prexp, r')'))
+            if grouping:
+                arr.extend((r'(', prexp, r')'))
+            else:
+                arr.append(prexp)
         arr.append(end)
         return re.compile("".join(arr)), param_names, param_funcs
 
