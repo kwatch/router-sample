@@ -48,6 +48,21 @@ class Router(object):
         if getattr(cls, '__mapping__', None) is None:
             raise RouterError("%s: no handler funcs defined." % (cls,))
 
+    def _scan(self, urlpath_pattern):
+        m1 = None
+        for m1 in re.finditer(r'(.*?)\{([^}]*)\}', urlpath_pattern):
+            text, placeholder = m1.groups()
+            #m2 = re.match(r'^(\w+)(:\w+)?(<.*>)?$', placeholder)
+            m2 = re.match(r'^(\w+)(:\w+)?$', placeholder)
+            if not m2:
+                raise RouterError("%s: invalid placeholder (expected '{name:type<rexp>})'" % urlpath_pattern)
+            pname, ptype = m2.groups()
+            yield text, pname, (ptype[1:] if ptype else None)
+        text = (urlpath_pattern[m1.end():] if m1 else
+                urlpath_pattern)
+        if text:
+            yield text, None, None
+
     def _compile(self, urlpath_pattern, begin='^', end='$', grouping=True):
         if urlpath_pattern.endswith('.*'):
             end = '(?:\.\w+)?' + end
