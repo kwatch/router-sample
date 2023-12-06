@@ -120,7 +120,7 @@ def validate(urlpath, result):
 
 
 loop = 1000 * 1000
-with Benchmarker(loop, width=38) as bench:
+with Benchmarker(loop, width=38, cycle=1, extra=0) as bench:
 
     debug = bench.properties.get('debug', False)
 
