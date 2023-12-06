@@ -21,7 +21,9 @@ def test(c):
 @recipe
 @spices("-n N : number of loop",
         "-i N : number of iteration",
-        "-x N : ignores max/min N results")
-def bench(c, n=1000*1000, i=1, x=0):
+        "-x N : ignores max/min N results",
+        "-D   : debug mode (validate result)")
+def bench(c, n=1000*1000, i=1, x=0, D=False):
     """run benchmark"""
-    system(c%"python3 router_bench.py -n $(n) -c $(i) -x $(x)")
+    debug = "--debug" if D else ""
+    system(c%"python3 router_bench.py -n $(n) -c $(i) -x $(x) $(debug)")
