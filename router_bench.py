@@ -97,12 +97,6 @@ mapping = [
 ]
 
 
-try:
-    xrange
-except NameError:
-    xrange = range       # for Python3
-
-
 router_classes = (
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter, OptimizedRegexpRouter,
