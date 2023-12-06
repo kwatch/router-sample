@@ -269,8 +269,8 @@ class SmartRegexpRouter(Router):
         return handler_class, handler_methods, param_args
 
 
-class OptimizedRegexpRouter(Router):
-    """Regexp (optimized)"""
+class NestedRegexpRouter(Router):
+    """Regexp (nested)"""
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having parameters
