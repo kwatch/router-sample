@@ -65,34 +65,28 @@ class Router(object):
 
     def _compile(self, urlpath_pattern, begin='^', end='$', grouping=True):
         if urlpath_pattern.endswith('.*'):
-            end = '(?:\.\w+)?' + end
+            end = r'(?:\.\w+)?' + end
             urlpath_pattern = urlpath_pattern[:-2]
         arr = [begin]
         param_names = []
         param_funcs = []
         m1 = None
-        for m1 in re.finditer(r'(.*?)\{([^}]*)\}', urlpath_pattern):
-            text, placeholder = m1.groups()
-            #m2 = re.match(r'^(\w+)(:\w+)?(<.*>)?$', placeholder)
-            m2 = re.match(r'^(\w+)(:\w+)?$', placeholder)
-            if not m2:
-                raise RouterError("%s: invalid placeholder (expected '{name:type<rexp>})'" % urlpath_pattern)
-            pname, ptype = m2.groups()
+        for text, pname, ptype in self._scan(urlpath_pattern):
+            if text:
+                arr.append(self._escape(text))
+            if not pname:
+                continue
             if pname in param_names:
                 raise RouterError("%s: parameter name '%s' duplicated." % (urlpath_pattern, pname))
             param_names.append(pname)
-            ptype = ptype[1:] if ptype else 'str'
+            ptype = ptype or 'str'
             tupl = self.URLPATH_PARAM_TYPES.get(ptype, None)
             if tupl is None:
                 raise RouterError("%s: unknown param type '%s'." % (urlpath_pattern, ptype))
             prexp, pfunc = tupl
             param_funcs.append(pfunc)
-            paren = "(" if grouping else "(?:"
-            arr.extend((self._escape(text), paren, prexp, ")"))
-        text = (urlpath_pattern[m1.end():] if m1 else
-                urlpath_pattern)
-        if text:
-            arr.append(self._escape(text))
+            paren = r'(' if grouping else r'(?:'
+            arr.extend((paren, prexp, r')'))
         arr.append(end)
         return re.compile("".join(arr)), param_names, param_funcs
 
