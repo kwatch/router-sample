@@ -104,7 +104,7 @@ except NameError:
 
 #loop = 1000 * 1000
 loop = 1000 * 100
-with Benchmarker(loop, width=43) as bench:
+with Benchmarker(loop, width=38) as bench:
 
     router_classes = (
         NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
@@ -122,7 +122,7 @@ with Benchmarker(loop, width=43) as bench:
     for router_class in router_classes:
         for urlpath in urlpaths:
 
-            @bench("%-21s: %-20s" % (router_class.__name__, urlpath))
+            @bench("%-15s: %-16s" % (router_class.__name__.replace('Router', ''), urlpath))
             def _(bm, router=router_class(mapping), urlpath=urlpath):
                 for _ in bm:
                     result = router.lookup('GET', urlpath)
