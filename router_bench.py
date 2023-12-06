@@ -58,8 +58,11 @@ class DummyAPI(RequestHandler):
 
 ##
 ## import string
+## arr = []
 ## for c in string.ascii_lowercase:
-##     print("        (r'/%s'    , DummyAPI)," % (c*3))
+##     path = "/%s" % (c * 3)
+##     arr.append((path, DummyAPI))
+## mapping = [("/api", arr)]
 ##
 
 mapping = [
