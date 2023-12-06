@@ -329,6 +329,150 @@ class NestedRegexpRouter(Router):
         return handler_class, handler_methods, param_args
 
 
+class OptimizedRegexpRouter(Router):
+    """Regexp (optimized)"""
+
+    def __init__(self, mapping):
+        self._mapping_dict = {}   # for urlpath having parameters
+        self._mapping_list = []   # for urlpath having no parameters
+        tuples = []
+        for tupl in self._traverse(mapping, ""):
+            path_pat, handler_class, handler_methods = tupl
+            if '{' not in path_pat:
+                self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
+            else:
+                tuples.append(tupl)
+        tree = self._build_tree(tuples)
+        callback = self._mapping_list.append
+        self._all_regexp = self._build_rexp(tree, callback)
+
+    def _build_tree(self, tuples):
+        tree = []          # tuple list
+        for t in tuples:
+            urlpath_pattern, handler_class, handler_methods = t
+            if urlpath_pattern.endswith('.*'):
+                path_pat = urlpath_pattern[:-2]
+                suffix_rexp = r'(?:\.\w+)?'
+            else:
+                path_pat = urlpath_pattern
+                suffix_rexp = None
+            param_names = []
+            param_funcs = []
+            node = tree
+            sb = [r'^']
+            for text, pname, _ptype, prexp, pfunc in self._scan(path_pat):
+                if text:
+                    sb.append(self._escape(text))
+                    node2 = self._next_node(node, text)
+                    node = node2
+                if not pname:
+                    continue
+                if pname in param_names:
+                    raise RouterError("%s: parameter name '%s' duplicated." % (urlpath_pattern, pname))
+                param_names.append(pname)
+                param_funcs.append(pfunc)
+                sb.extend((r'(', prexp, r')'))
+                node = self._next_node(node, (prexp,))
+            if suffix_rexp:
+                sb.append(suffix_rexp)
+                node = self._next_node(node, (suffix_rexp,))
+            sb.append(r'$')
+            urlpath_rexp = re.compile("".join(sb))
+            tuple = (urlpath_pattern, urlpath_rexp,
+                     handler_class, handler_methods,
+                     param_names, param_funcs)
+            for pair in node:
+                assert pair[0] is None, "** internal error: pair[1]=%r" % (pair[1])
+            node.append((None, tuple))
+        return tree
+
+    def _next_node(self, node, key):
+        for i, (k, v) in enumerate(node):
+            if isinstance(k, str):
+                if isinstance(key, str) and k[0] == key[0]:
+                    prefix, rest1, rest2 = self._common_prefix(k, key)
+                    if not rest1 and not rest2:
+                        node2 = v
+                    elif not rest1:
+                        node2 = self._next_node(v, rest2)
+                    elif not rest2:
+                        node2 = [(rest1, v)]
+                        node[i] = (prefix, node2)
+                    else:
+                        node2 = []
+                        node[i] = (prefix, [(rest1, v), (rest2, node2)])
+                    return node2
+            elif isinstance(k, tuple):
+                if isinstance(key, tuple) and k == key:
+                    node2 = v
+                    return node2
+            elif k is None:
+                pass
+            else:
+                assert False, "** internal error: k=%r" % (k,)
+        node2 = []
+        node.append((key, node2))
+        return node2
+
+    def _common_prefix(self, str1, str2):
+        n = min(len(str1), len(str2))
+        for i in range(n):
+            if str1[i] != str2[i]:
+                break
+        else:
+            i += 1
+        prefix = str1[0:i]
+        rest1  = str1[i:]
+        rest2  = str2[i:]
+        return prefix, rest1, rest2
+
+    def _build_rexp(self, tree, callback=None):
+        sb = [r'^']
+        self.__build_rexp(tree, sb, callback)
+        sb.append(r'$')
+        return re.compile("".join(sb))
+
+    def __build_rexp(self, node, sb, callback):
+        if len(node) > 1:
+            sb.append(r'(?:')
+        i = 0
+        for pair in node:
+            k, v = pair
+            if i > 0:
+                sb.append(r'|')
+            i += 1
+            if k is None:
+                sb.append(r'($)')
+                if callback:
+                    callback(v)
+            elif isinstance(k, str):
+                text = k
+                sb.append(self._escape(text))
+                self.__build_rexp(v, sb, callback)
+            elif isinstance(k, tuple):
+                prexp = k[0]
+                sb.append(prexp)
+                self.__build_rexp(v, sb, callback)
+            else:
+                assert False, "** internal error: k=%r" % (k,)
+        if len(node) > 1:
+            sb.append(r')')
+
+    def find(self, req_path):
+        tupl = self._mapping_dict.get(req_path)
+        if tupl:
+            return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        m = self._all_regexp.match(req_path)
+        if m is None:
+            return None
+        idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        _, path_rexp, handler_class, handler_methods, _, param_funcs = self._mapping_list[idx]
+        m2 = path_rexp.match(req_path)
+        param_args = [ (f(s) if f is not None else s)
+                           for s, f in zip(m2.groups(), param_funcs) ]
+        return handler_class, handler_methods, param_args
+
+
 class StateMachineRouter(Router):
     """StateMachine"""
 
