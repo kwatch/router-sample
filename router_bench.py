@@ -56,45 +56,48 @@ class DummyAPI(RequestHandler):
             return {"action": "edit", "id": id}
 
 
-##
-## import string
-## arr = []
-## for c in string.ascii_lowercase:
-##     path = "/%s" % (c * 3)
-##     arr.append((path, DummyAPI))
-## mapping = [("/api", arr)]
-##
+if False:
 
-mapping = [
-    (r'/api', [
-        (r'/aaa'    , DummyAPI),
-        (r'/bbb'    , DummyAPI),
-        (r'/ccc'    , DummyAPI),
-        (r'/ddd'    , DummyAPI),
-        (r'/eee'    , DummyAPI),
-        (r'/fff'    , DummyAPI),
-        (r'/ggg'    , DummyAPI),
-        (r'/hhh'    , DummyAPI),
-        (r'/iii'    , DummyAPI),
-        (r'/jjj'    , DummyAPI),
-        (r'/kkk'    , DummyAPI),
-        (r'/lll'    , DummyAPI),
-        (r'/mmm'    , DummyAPI),
-        (r'/nnn'    , DummyAPI),
-        (r'/ooo'    , DummyAPI),
-        (r'/ppp'    , DummyAPI),
-        (r'/qqq'    , DummyAPI),
-        (r'/rrr'    , DummyAPI),
-        (r'/sss'    , DummyAPI),
-        (r'/ttt'    , DummyAPI),
-        (r'/uuu'    , DummyAPI),
-        (r'/vvv'    , DummyAPI),
-        (r'/www'    , DummyAPI),
-        (r'/xxx'    , DummyAPI),
-        (r'/yyy'    , DummyAPI),
-        (r'/zzz'    , DummyAPI),
-    ]),
-]
+    import string
+    arr = []
+    for c in string.ascii_lowercase:
+        path = "/%s" % (c * 3)
+        arr.append((path, DummyAPI))
+        #arr.append((path + "/{id}/comments", DummyAPI))
+    mapping = [("/api", arr)]
+
+else:
+
+    mapping = [
+        (r'/api', [
+            (r'/aaa'    , DummyAPI),
+            (r'/bbb'    , DummyAPI),
+            (r'/ccc'    , DummyAPI),
+            (r'/ddd'    , DummyAPI),
+            (r'/eee'    , DummyAPI),
+            (r'/fff'    , DummyAPI),
+            (r'/ggg'    , DummyAPI),
+            (r'/hhh'    , DummyAPI),
+            (r'/iii'    , DummyAPI),
+            (r'/jjj'    , DummyAPI),
+            (r'/kkk'    , DummyAPI),
+            (r'/lll'    , DummyAPI),
+            (r'/mmm'    , DummyAPI),
+            (r'/nnn'    , DummyAPI),
+            (r'/ooo'    , DummyAPI),
+            (r'/ppp'    , DummyAPI),
+            (r'/qqq'    , DummyAPI),
+            (r'/rrr'    , DummyAPI),
+            (r'/sss'    , DummyAPI),
+            (r'/ttt'    , DummyAPI),
+            (r'/uuu'    , DummyAPI),
+            (r'/vvv'    , DummyAPI),
+            (r'/www'    , DummyAPI),
+            (r'/xxx'    , DummyAPI),
+            (r'/yyy'    , DummyAPI),
+            (r'/zzz'    , DummyAPI),
+        ]),
+    ]
 
 
 router_classes = (
