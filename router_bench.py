@@ -127,8 +127,9 @@ with Benchmarker(loop, width=38) as bench:
 
     for router_class in router_classes:
         for urlpath in urlpaths:
+            label = router_class.__name__.replace('Router', '')
 
-            @bench("%-15s: %-16s" % (router_class.__name__.replace('Router', ''), urlpath))
+            @bench("%-15s: %-16s" % (label, urlpath))
             def _(bm, router=router_class(mapping), urlpath=urlpath):
                 for _ in bm:
                     result = router.lookup('GET', urlpath)
