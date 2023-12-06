@@ -119,6 +119,14 @@ with Benchmarker(loop, width=38) as bench:
     )
     debug = bench.properties.get('debug', False)
 
+    def validate(urlpath, result):
+        if urlpath.endswith('/123.json'):
+            assert result == (DummyAPI, DummyAPI.do_show, [123])
+        elif urlpath.endswith('/789.json'):
+            assert result == (DummyAPI, DummyAPI.do_show, [789])
+        else:
+            assert result == (DummyAPI, DummyAPI.do_index, [])
+
     for router_class in router_classes:
         for urlpath in urlpaths:
 
@@ -128,9 +136,4 @@ with Benchmarker(loop, width=38) as bench:
                     result = router.lookup('GET', urlpath)
                 #
                 if debug:
-                    if urlpath.endswith('/123.json'):
-                        assert result == (DummyAPI, DummyAPI.do_show, [123])
-                    elif urlpath.endswith('/789.json'):
-                        assert result == (DummyAPI, DummyAPI.do_show, [789])
-                    else:
-                        assert result == (DummyAPI, DummyAPI.do_index, [])
+                    validate(urlpath, result)
