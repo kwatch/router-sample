@@ -10,7 +10,7 @@ from minikeight import (
     Router,
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
-    OptimizedRegexpRouter, HashedRegexpRouter,
+    OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
 )
 from mock_handler import HomeAPI, BooksAPI, BookCommentsAPI, OrdersAPI, mapping
@@ -183,6 +183,10 @@ class NestedRegexpRouter_TestCase(Router_TestBase):
 
 class OptimizedRegexpRouter_TestCase(Router_TestBase):
     ROUTER_CLASS = OptimizedRegexpRouter
+
+
+class SlicedRegexpRouter_TestCase(Router_TestBase):
+    ROUTER_CLASS = SlicedRegexpRouter
 
 
 class HashedRegexpRouter_TestCase(Router_TestBase):
