@@ -526,7 +526,8 @@ class SlicedRegexpRouter(OptimizedRegexpRouter):
 class HashedRegexpRouter(Router):
     """Regexp (hashed)"""
 
-    SUBROUTER_CLASS = OptimizedRegexpRouter
+    #SUBROUTER_CLASS = OptimizedRegexpRouter
+    SUBROUTER_CLASS = SlicedRegexpRouter
 
     def __init__(self, mapping, prefix_minlength_target=re.compile(r'^/\w')):
         self._mapping_dict = {}   # for urlpath having parameters
