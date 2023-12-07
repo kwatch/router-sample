@@ -13,7 +13,7 @@ from minikeight import (
     OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
 )
-from mock_handler import HomeAPI, BooksAPI, BookCommentsAPI, OrdersAPI, mapping
+from mock_handler import HomeAPI, BooksAPI, BookCommentsAPI, OrdersAPI, MAPPING
 
 
 class MockRouter(Router):
@@ -74,7 +74,7 @@ class Router_TestBase(object):
     TUPLE_TYPE   = tuple
 
     def provide_router(self):
-        return self.ROUTER_CLASS(mapping)
+        return self.ROUTER_CLASS(MAPPING)
 
     def provide_tupletype(self):
         return self.TUPLE_TYPE

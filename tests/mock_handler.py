@@ -105,7 +105,7 @@ class OrdersAPI(RequestHandler):
         def post_edit_form(self, id):
             return {"action": "show", "id": id}
 
-mapping = [
+MAPPING = [
     (r'/'                  , HomeAPI),
     (r'/api/v1', [
         (r'/books'         , BooksAPI),
