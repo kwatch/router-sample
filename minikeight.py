@@ -481,6 +481,48 @@ class OptimizedRegexpRouter(Router):
         return handler_class, handler_methods, param_args
 
 
+class SlicedRegexpRouter(OptimizedRegexpRouter):
+
+    def __init__(self, mapping):
+        OptimizedRegexpRouter.__init__(self, mapping)
+        new_list = []
+        for t in self._mapping_list:
+            urlpath_pattern, _, _, _, param_names, _ = t
+            slice_ = self._slice(urlpath_pattern, param_names)
+            new_list.append(t + (slice_,))
+        self._mapping_list = new_list
+
+    def _slice(self, urlpath_pattern, param_names):
+        if len(param_names) != 1:
+            return None
+        if urlpath_pattern.endswith('.*'):
+            return None
+        l_idx = urlpath_pattern.index('{')
+        r_idx = urlpath_pattern.rindex('}')
+        return slice(l_idx, (r_idx - len(urlpath_pattern) + 1) or None)
+
+    def find(self, req_path):
+        tupl = self._mapping_dict.get(req_path)
+        if tupl:
+            return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        if not self._mapping_list:
+            return None
+        m = self._all_regexp.match(req_path)
+        if m is None:
+            return None
+        idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        _, path_rexp, handler_class, handler_methods, _, param_funcs, slice_ = self._mapping_list[idx]
+        if slice_ is not None:
+            s = req_path[slice_]
+            f = param_funcs[0]
+            param_args = [f(s) if f is not None else s]
+        else:
+            m2 = path_rexp.match(req_path)
+            param_args = [ (f(s) if f is not None else s)
+                               for s, f in zip(m2.groups(), param_funcs) ]
+        return handler_class, handler_methods, param_args
+
+
 class HashedRegexpRouter(Router):
     """Regexp (hashed)"""
 
