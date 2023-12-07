@@ -23,10 +23,19 @@ Requirements
 How to run
 ----------
 
+Install:
+
 ```
 $ python3 --version
 Python 3.6.6
-$ pip install -r requirements.txt
+$ python3 -m venv pyvenv
+$ . pyvenv/bin/activate
+$ pip3 install -r requirements.txt
+```
+
+Run:
+
+```
 $ kk -l                         # list tasks
 $ kk test                       # run test scripts
 $ kk bench                      # run benchmark
@@ -36,9 +45,6 @@ $ kk bench -n 100000 -i 5 -x 2  # run benchmark with options
 Or:
 
 ```
-$ python3 --version
-Python 3.6.6
-$ pip install -r requirements.txt
 $ python3 -m oktest tests       # run test scripts
 $ python3 router_bench.py       # run benchmark
 $ python3 router_bench.py -h    # show options of benchmark
