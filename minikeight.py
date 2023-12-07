@@ -27,7 +27,7 @@ class Router(object):
         handler_func = fn(req_meth) or (req_meth == 'HEAD' and fn('GET')) or fn('ANY')
         return handler_class, handler_func, param_args  # handler_func may be None
 
-    def _traverse(self, mapping, root_path):
+    def _traverse(self, mapping, root_path=""):
         for base_path, arg in mapping:
             if isinstance(arg, list):
                 child_mapping = arg
@@ -116,7 +116,7 @@ class NaiveLinearRouter(Router):
 
     def __init__(self, mapping):
         self._mapping_list = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             path_rexp, param_names, param_funcs = self._compile(path_pat)
             t = (path_pat, path_rexp,
@@ -139,7 +139,7 @@ class PrefixLinearRouter(Router):
 
     def __init__(self, mapping):
         self._mapping_list = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             path_rexp, param_names, param_funcs = self._compile(path_pat)
             path_prefix = path_pat.split('{', 1)[0]
@@ -167,7 +167,7 @@ class FixedLinearRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         append = self._mapping_list.append
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -201,7 +201,7 @@ class NaiveRegexpRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         all = []; i = 0; pos = 0
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -247,7 +247,7 @@ class SmartRegexpRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         all = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -351,7 +351,7 @@ class OptimizedRegexpRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         tuples = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -553,7 +553,7 @@ class HashedRegexpRouter(Router):
                 re.compile(x)    if isinstance(x, str) else
                 x)
         #
-        pairs = [ tupl for tupl in self._traverse(mapping, "") ]
+        pairs = [ tupl for tupl in self._traverse(mapping) ]
         prefixes = ( p[0].split('{')[0] for p in pairs if rexp.search(p[0]) )
         minlen = min( len(s) for s in prefixes ) or 0
         self._prefix_minlength = minlen
@@ -624,7 +624,7 @@ class StateMachineRouter(Router):
         ptypes = self.URLPATH_PARAM_TYPES
         self._pkeys = { t[0]: i for i, t in enumerate(ptypes) }  # ex: {'int': 0, 'date': 1, 'str': 2}
         self._pfuncs = [ t[1] for t in ptypes ]  # list of converter func
-        for t in self._traverse(mapping, ""):
+        for t in self._traverse(mapping):
             path_pat, handler_class, handler_methods = t
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
