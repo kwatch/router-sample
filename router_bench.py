@@ -13,7 +13,7 @@ from minikeight import (
     on, RequestHandler,
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
-    OptimizedRegexpRouter, HashedRegexpRouter,
+    OptimizedRegexpRouter, HashedRegexpRouter, SlicedRegexpRouter,
     StateMachineRouter,
 )
 
@@ -36,7 +36,8 @@ class DummyAPI(RequestHandler):
         def do_new(self, id):
             return {"action": "new", "id": id}
 
-    with on.path('/{id:int}.*'):
+    #with on.path('/{id:int}.*'):
+    with on.path('/{id:int}.json'):
 
         @on('GET')
         def do_show(self, id):
@@ -104,7 +105,7 @@ else:
 router_classes = (
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
-    OptimizedRegexpRouter, HashedRegexpRouter,
+    OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
 )
 
