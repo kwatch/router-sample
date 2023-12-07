@@ -218,6 +218,8 @@ class NaiveRegexpRouter(Router):
         tupl = self._mapping_dict.get(req_path)
         if tupl:
             return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        if not self._mapping_list:
+            return None
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
@@ -260,6 +262,8 @@ class SmartRegexpRouter(Router):
         tupl = self._mapping_dict.get(req_path)
         if tupl:
             return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        if not self._mapping_list:
+            return None
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
@@ -318,6 +322,8 @@ class NestedRegexpRouter(Router):
         tupl = self._mapping_dict.get(req_path)
         if tupl:
             return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        if not self._mapping_list:
+            return None
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
@@ -462,6 +468,8 @@ class OptimizedRegexpRouter(Router):
         tupl = self._mapping_dict.get(req_path)
         if tupl:
             return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        if not self._mapping_list:
+            return None
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
