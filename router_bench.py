@@ -13,7 +13,7 @@ from minikeight import (
     on, RequestHandler,
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
-    OptimizedRegexpRouter, HashedRegexpRouter,
+    OptimizedRegexpRouter, HashedRegexpRouter, SlicedRegexpRouter,
     StateMachineRouter,
 )
 
@@ -36,7 +36,8 @@ class DummyAPI(RequestHandler):
         def do_new(self, id):
             return {"action": "new", "id": id}
 
-    with on.path('/{id:int}.*'):
+    #with on.path('/{id:int}.*'):
+    with on.path('/{id:int}.json'):
 
         @on('GET')
         def do_show(self, id):
@@ -104,7 +105,7 @@ else:
 router_classes = (
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
-    OptimizedRegexpRouter, HashedRegexpRouter,
+    OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
 )
 
@@ -116,16 +117,16 @@ urlpaths = (
 )
 
 def validate(urlpath, result):
-    if urlpath.endswith('/123.json'):
-        assert result == (DummyAPI, DummyAPI.do_show, [123])
-    elif urlpath.endswith('/789.json'):
-        assert result == (DummyAPI, DummyAPI.do_show, [789])
+    if urlpath.endswith(('/123', '/123.json')):
+        assert result == (DummyAPI, DummyAPI.do_show, [123]), "result=%r" % (result,)
+    elif urlpath.endswith(('/789', '/789.json')):
+        assert result == (DummyAPI, DummyAPI.do_show, [789]), "result=%r" % (result,)
     else:
-        assert result == (DummyAPI, DummyAPI.do_index, [])
+        assert result == (DummyAPI, DummyAPI.do_index, []), "result=%r" % (result,)
 
 
 loop = 1000 * 1000
-with Benchmarker(loop, width=38, cycle=1, extra=0) as bench:
+with Benchmarker(loop, width=39, cycle=1, extra=0) as bench:
 
     debug = bench.properties.get('debug', False)
 
