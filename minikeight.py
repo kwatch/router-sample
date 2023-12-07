@@ -33,11 +33,13 @@ class Router(object):
         else:
             return obj
 
-    def _traverse(self, mapping, root_path=""):
+    def _traverse(self, mapping, root_path="", mapping_class=None):
+        if mapping_class is None:
+            mapping_class = type(mapping)
         for base_path, arg in self._each_keyval(mapping):
-            if isinstance(arg, list):
+            if type(arg) is mapping_class:
                 child_mapping = arg
-                yield from self._traverse(child_mapping, root_path+base_path)
+                yield from self._traverse(child_mapping, root_path+base_path, mapping_class)
             else:
                 handler_class = arg
                 self._validate(handler_class)
@@ -305,10 +307,12 @@ class NestedRegexpRouter(Router):
                 self._mapping_list.append(t)
         self._all_regexp = re.compile("^(?:%s)" % "|".join(all))
 
-    def _traverse(self, mapping, root_path, arr):
+    def _traverse(self, mapping, root_path, arr, mapping_class=None):
+        if mapping_class is None:
+            mapping_class = type(mapping)
         for base_path, arg in self._each_keyval(mapping):
             arr2 = []
-            if isinstance(arg, list):
+            if type(arg) is mapping_class:
                 child_mapping = arg
                 yield from self._traverse(child_mapping, root_path+base_path, arr2)
             else:
