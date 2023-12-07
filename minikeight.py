@@ -481,6 +481,56 @@ class OptimizedRegexpRouter(Router):
         return handler_class, handler_methods, param_args
 
 
+class HashedRegexpRouter(Router):
+    """Regexp (hashed)"""
+
+    def __init__(self, mapping, prefix_minlength_target=re.compile(r'^/\w')):
+        self._subrouters   = {}   # {prefix: OptimizedRegexpRouter}
+        #
+        x = prefix_minlength_target
+        rexp = (re.compile(r'.') if x is None else
+                re.compile(x)    if isinstance(x, str) else
+                x)
+        #
+        pairs = [ tupl for tupl in self._traverse(mapping, "") ]
+        prefixes = ( p[0].split('{')[0] for p in pairs if rexp.search(p[0]) )
+        minlen = min( len(s) for s in prefixes ) or 0
+        self._prefix_minlength = minlen
+        #
+        groups = {}
+        for pair in pairs:
+            prefix = pair[0][:minlen]
+            if prefix.find('{') >= 0 or len(prefix) < minlen:
+                prefix = ""
+            pairs_ = groups.setdefault(prefix, [])
+            pairs_.append(pair)
+        #
+        for prefix, pairs_ in groups.items():
+            self._subrouters[prefix] = OptimizedRegexpRouter(pairs_)
+
+    def _traverse(self, mapping, base_path="", mapping_class=None):
+        if mapping_class is None:
+            mapping_class = type(mapping)
+        for sub_path, obj in mapping:
+            full_path = base_path + sub_path
+            if type(obj) is mapping_class:
+                yield from self._traverse(obj, full_path, mapping_class)
+            else:
+                yield full_path, obj
+
+    def find(self, req_path):
+        prefix = req_path[:self._prefix_minlength]
+        subrouter = self._subrouters.get(prefix)
+        if subrouter is not None:
+            tupl = subrouter.find(req_path)
+            if tupl is not None:
+                return tupl
+        subrouter = self._subrouters.get("")
+        if subrouter is not None:
+            return subrouter.find(req_path)
+        return None
+
+
 class StateMachineRouter(Router):
     """StateMachine"""
 
