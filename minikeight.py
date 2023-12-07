@@ -484,6 +484,8 @@ class OptimizedRegexpRouter(Router):
 class HashedRegexpRouter(Router):
     """Regexp (hashed)"""
 
+    SUBROUTER_CLASS = OptimizedRegexpRouter
+
     def __init__(self, mapping, prefix_minlength_target=re.compile(r'^/\w')):
         self._mapping_dict = {}   # for urlpath having parameters
         self._subrouters   = {}   # {prefix: OptimizedRegexpRouter}
@@ -507,7 +509,7 @@ class HashedRegexpRouter(Router):
             pairs_.append(pair)
         #
         for prefix, pairs_ in groups.items():
-            subrouter = OptimizedRegexpRouter(pairs_)
+            subrouter = self.SUBROUTER_CLASS(pairs_)
             self._mapping_dict.update(subrouter._mapping_dict)
             subrouter._mapping_dict.clear()
             self._subrouters[prefix] = subrouter
