@@ -223,12 +223,15 @@ class NaiveRegexpRouter(Router):
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
-        for k, v in m.groupdict().items():
-            if v:
-                i = int(k[1:])
-                break
-        else:
-            assert false, "unreachable"
+        #
+        #for k, v in m.groupdict().items():
+        #    if v:
+        #        i = int(k[1:])
+        #        break
+        #else:
+        #    assert false, "unreachable"
+        i = int(m.lastgroup[1:])
+        #
         t = self._mapping_list[i]
         _, pos, n, handler_class, handler_methods, _, param_funcs = t
         params = m.groups()[pos:pos+n]
@@ -267,7 +270,10 @@ class SmartRegexpRouter(Router):
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
-        idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        #
+        #idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        idx = m.lastindex - 1
+        #
         _, path_rexp, handler_class, handler_methods, _, param_funcs = self._mapping_list[idx]
         m2 = path_rexp.match(req_path)
         param_args = [ (f(s) if f is not None else s)
@@ -327,7 +333,10 @@ class NestedRegexpRouter(Router):
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
-        idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        #
+        #idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        idx = m.lastindex - 1
+        #
         _, path_rexp, handler_class, handler_methods, _, param_funcs = self._mapping_list[idx]
         m2 = path_rexp.match(req_path)
         param_args = [ (f(s) if f is not None else s)
@@ -473,7 +482,10 @@ class OptimizedRegexpRouter(Router):
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
-        idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        #
+        #idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        idx = m.lastindex - 1
+        #
         _, path_rexp, handler_class, handler_methods, _, param_funcs = self._mapping_list[idx]
         m2 = path_rexp.match(req_path)
         param_args = [ (f(s) if f is not None else s)
@@ -510,7 +522,10 @@ class SlicedRegexpRouter(OptimizedRegexpRouter):
         m = self._all_regexp.match(req_path)
         if m is None:
             return None
-        idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        #
+        #idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
+        idx = m.lastindex - 1
+        #
         _, path_rexp, handler_class, handler_methods, _, param_funcs, slice_ = self._mapping_list[idx]
         if slice_ is not None:
             s = req_path[slice_]
