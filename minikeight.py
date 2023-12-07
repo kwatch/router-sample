@@ -33,18 +33,18 @@ class Router(object):
         else:
             return obj
 
-    def _traverse(self, mapping, root_path="", mapping_class=None):
+    def _traverse(self, mapping, base_path="", mapping_class=None):
         if mapping_class is None:
             mapping_class = type(mapping)
-        for base_path, arg in self._each_keyval(mapping):
+        for sub_path, arg in self._each_keyval(mapping):
             if type(arg) is mapping_class:
                 child_mapping = arg
-                yield from self._traverse(child_mapping, root_path+base_path, mapping_class)
+                yield from self._traverse(child_mapping, base_path+sub_path, mapping_class)
             else:
                 handler_class = arg
                 self._validate(handler_class)
                 for path, handler_methods in handler_class.__mapping__:
-                    full_path_pat = root_path+base_path+path
+                    full_path_pat = base_path+sub_path+path
                     yield full_path_pat, handler_class, handler_methods
 
     def _validate(self, handler_class):
@@ -307,19 +307,19 @@ class NestedRegexpRouter(Router):
                 self._mapping_list.append(t)
         self._all_regexp = re.compile("^(?:%s)" % "|".join(all))
 
-    def _traverse(self, mapping, root_path, arr, mapping_class=None):
+    def _traverse(self, mapping, base_path, arr, mapping_class=None):
         if mapping_class is None:
             mapping_class = type(mapping)
-        for base_path, arg in self._each_keyval(mapping):
+        for sub_path, arg in self._each_keyval(mapping):
             arr2 = []
             if type(arg) is mapping_class:
                 child_mapping = arg
-                yield from self._traverse(child_mapping, root_path+base_path, arr2)
+                yield from self._traverse(child_mapping, base_path+sub_path, arr2)
             else:
                 handler_class = arg
                 self._validate(handler_class)
                 for path, handler_methods in handler_class.__mapping__:
-                    full_path_pat = root_path+base_path+path
+                    full_path_pat = base_path+sub_path+path
                     yield full_path_pat, handler_class, handler_methods
                     if '{' not in full_path_pat:
                         continue
@@ -328,11 +328,11 @@ class NestedRegexpRouter(Router):
                     arr2.append(pattern+'($)')
             if not arr2:
                 continue
-            base_pattern = self._compile(base_path, '', '', False)[0].pattern
+            subpath_pattern = self._compile(sub_path, '', '', False)[0].pattern
             if len(arr2) == 1:
-                arr.append("%s%s" % (base_pattern, arr2[0]))
+                arr.append("%s%s" % (subpath_pattern, arr2[0]))
             else:
-                arr.append("%s(?:%s)" % (base_pattern, "|".join(arr2)))
+                arr.append("%s(?:%s)" % (subpath_pattern, "|".join(arr2)))
 
     def find(self, req_path):
         tupl = self._mapping_dict.get(req_path)
@@ -586,7 +586,7 @@ class HashedRegexpRouter(Router):
         if mapping_class is None:
             mapping_class = type(mapping)
         for sub_path, obj in self._each_keyval(mapping):
-            full_path = base_path + sub_path
+            full_path = base_path+sub_path
             if type(obj) is mapping_class:
                 yield from self._traverse(obj, full_path, mapping_class)
             else:
