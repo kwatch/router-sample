@@ -12,7 +12,8 @@ from benchmarker import Benchmarker
 from minikeight import (
     on, RequestHandler,
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
-    NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter, OptimizedRegexpRouter,
+    NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
+    OptimizedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
 )
 
@@ -102,7 +103,8 @@ else:
 
 router_classes = (
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
-    NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter, OptimizedRegexpRouter,
+    NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
+    OptimizedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
 )
 
