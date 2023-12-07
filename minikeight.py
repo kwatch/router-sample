@@ -485,6 +485,7 @@ class HashedRegexpRouter(Router):
     """Regexp (hashed)"""
 
     def __init__(self, mapping, prefix_minlength_target=re.compile(r'^/\w')):
+        self._mapping_dict = {}   # for urlpath having parameters
         self._subrouters   = {}   # {prefix: OptimizedRegexpRouter}
         #
         x = prefix_minlength_target
@@ -506,7 +507,10 @@ class HashedRegexpRouter(Router):
             pairs_.append(pair)
         #
         for prefix, pairs_ in groups.items():
-            self._subrouters[prefix] = OptimizedRegexpRouter(pairs_)
+            subrouter = OptimizedRegexpRouter(pairs_)
+            self._mapping_dict.update(subrouter._mapping_dict)
+            subrouter._mapping_dict.clear()
+            self._subrouters[prefix] = subrouter
 
     def _traverse(self, mapping, base_path="", mapping_class=None):
         if mapping_class is None:
@@ -519,6 +523,9 @@ class HashedRegexpRouter(Router):
                 yield full_path, obj
 
     def find(self, req_path):
+        tupl = self._mapping_dict.get(req_path)
+        if tupl:
+            return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
         prefix = req_path[:self._prefix_minlength]
         subrouter = self._subrouters.get(prefix)
         if subrouter is not None:
