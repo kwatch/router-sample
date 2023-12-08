@@ -7,9 +7,9 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from oktest import ok, test, subject, situation, at_end
 
 from minikeight import Application, new_env, StartResponse
-from mock_handler import mapping
+from mock_handler import MAPPING
 
-app = Application(mapping)
+app = Application(MAPPING)
 
 
 class Application_TestCase(object):

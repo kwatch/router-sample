@@ -61,45 +61,51 @@ class DummyAPI(RequestHandler):
 if False:
 
     import string
-    arr = []
+    #arr = []
+    #for c in string.ascii_lowercase:
+    #    path = "/%s" % (c * 3)
+    #    arr.append((path, DummyAPI))
+    #    #arr.append((path+"/{x_id}/comments", DummyAPI))
+    #mapping = [("/api", arr)]
+    dct = {}
     for c in string.ascii_lowercase:
         path = "/%s" % (c * 3)
-        arr.append((path, DummyAPI))
-        #arr.append((path + "/{id}/comments", DummyAPI))
-    mapping = [("/api", arr)]
+        dct[path] = DummyAPI
+        #dct[path+"/{x_id}/comments"] = DummyAPI
+    mapping = {"/api": dct}
 
 else:
 
-    mapping = [
-        (r'/api', [
-            (r'/aaa'    , DummyAPI),
-            (r'/bbb'    , DummyAPI),
-            (r'/ccc'    , DummyAPI),
-            (r'/ddd'    , DummyAPI),
-            (r'/eee'    , DummyAPI),
-            (r'/fff'    , DummyAPI),
-            (r'/ggg'    , DummyAPI),
-            (r'/hhh'    , DummyAPI),
-            (r'/iii'    , DummyAPI),
-            (r'/jjj'    , DummyAPI),
-            (r'/kkk'    , DummyAPI),
-            (r'/lll'    , DummyAPI),
-            (r'/mmm'    , DummyAPI),
-            (r'/nnn'    , DummyAPI),
-            (r'/ooo'    , DummyAPI),
-            (r'/ppp'    , DummyAPI),
-            (r'/qqq'    , DummyAPI),
-            (r'/rrr'    , DummyAPI),
-            (r'/sss'    , DummyAPI),
-            (r'/ttt'    , DummyAPI),
-            (r'/uuu'    , DummyAPI),
-            (r'/vvv'    , DummyAPI),
-            (r'/www'    , DummyAPI),
-            (r'/xxx'    , DummyAPI),
-            (r'/yyy'    , DummyAPI),
-            (r'/zzz'    , DummyAPI),
-        ]),
-    ]
+    mapping = {
+        "/api": {
+            "/aaa":  DummyAPI,
+            "/bbb":  DummyAPI,
+            "/ccc":  DummyAPI,
+            "/ddd":  DummyAPI,
+            "/eee":  DummyAPI,
+            "/fff":  DummyAPI,
+            "/ggg":  DummyAPI,
+            "/hhh":  DummyAPI,
+            "/iii":  DummyAPI,
+            "/jjj":  DummyAPI,
+            "/kkk":  DummyAPI,
+            "/lll":  DummyAPI,
+            "/mmm":  DummyAPI,
+            "/nnn":  DummyAPI,
+            "/ooo":  DummyAPI,
+            "/ppp":  DummyAPI,
+            "/qqq":  DummyAPI,
+            "/rrr":  DummyAPI,
+            "/sss":  DummyAPI,
+            "/ttt":  DummyAPI,
+            "/uuu":  DummyAPI,
+            "/vvv":  DummyAPI,
+            "/www":  DummyAPI,
+            "/xxx":  DummyAPI,
+            "/yyy":  DummyAPI,
+            "/zzz":  DummyAPI,
+        },
+    }
 
 
 router_classes = (

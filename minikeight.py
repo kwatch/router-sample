@@ -27,16 +27,24 @@ class Router(object):
         handler_func = fn(req_meth) or (req_meth == 'HEAD' and fn('GET')) or fn('ANY')
         return handler_class, handler_func, param_args  # handler_func may be None
 
-    def _traverse(self, mapping, root_path):
-        for base_path, arg in mapping:
-            if isinstance(arg, list):
+    def _each_keyval(self, obj):
+        if isinstance(obj, dict):
+            return obj.items()
+        else:
+            return obj
+
+    def _traverse(self, mapping, base_path="", mapping_class=None):
+        if mapping_class is None:
+            mapping_class = type(mapping)
+        for sub_path, arg in self._each_keyval(mapping):
+            if type(arg) is mapping_class:
                 child_mapping = arg
-                yield from self._traverse(child_mapping, root_path+base_path)
+                yield from self._traverse(child_mapping, base_path+sub_path, mapping_class)
             else:
                 handler_class = arg
                 self._validate(handler_class)
                 for path, handler_methods in handler_class.__mapping__:
-                    full_path_pat = root_path+base_path+path
+                    full_path_pat = base_path+sub_path+path
                     yield full_path_pat, handler_class, handler_methods
 
     def _validate(self, handler_class):
@@ -116,7 +124,7 @@ class NaiveLinearRouter(Router):
 
     def __init__(self, mapping):
         self._mapping_list = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             path_rexp, param_names, param_funcs = self._compile(path_pat)
             t = (path_pat, path_rexp,
@@ -139,7 +147,7 @@ class PrefixLinearRouter(Router):
 
     def __init__(self, mapping):
         self._mapping_list = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             path_rexp, param_names, param_funcs = self._compile(path_pat)
             path_prefix = path_pat.split('{', 1)[0]
@@ -167,7 +175,7 @@ class FixedLinearRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         append = self._mapping_list.append
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -201,7 +209,7 @@ class NaiveRegexpRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         all = []; i = 0; pos = 0
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -247,7 +255,7 @@ class SmartRegexpRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         all = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -299,17 +307,19 @@ class NestedRegexpRouter(Router):
                 self._mapping_list.append(t)
         self._all_regexp = re.compile("^(?:%s)" % "|".join(all))
 
-    def _traverse(self, mapping, root_path, arr):
-        for base_path, arg in mapping:
+    def _traverse(self, mapping, base_path, arr, mapping_class=None):
+        if mapping_class is None:
+            mapping_class = type(mapping)
+        for sub_path, arg in self._each_keyval(mapping):
             arr2 = []
-            if isinstance(arg, list):
+            if type(arg) is mapping_class:
                 child_mapping = arg
-                yield from self._traverse(child_mapping, root_path+base_path, arr2)
+                yield from self._traverse(child_mapping, base_path+sub_path, arr2)
             else:
                 handler_class = arg
                 self._validate(handler_class)
                 for path, handler_methods in handler_class.__mapping__:
-                    full_path_pat = root_path+base_path+path
+                    full_path_pat = base_path+sub_path+path
                     yield full_path_pat, handler_class, handler_methods
                     if '{' not in full_path_pat:
                         continue
@@ -318,11 +328,11 @@ class NestedRegexpRouter(Router):
                     arr2.append(pattern+'($)')
             if not arr2:
                 continue
-            base_pattern = self._compile(base_path, '', '', False)[0].pattern
+            subpath_pattern = self._compile(sub_path, '', '', False)[0].pattern
             if len(arr2) == 1:
-                arr.append("%s%s" % (base_pattern, arr2[0]))
+                arr.append("%s%s" % (subpath_pattern, arr2[0]))
             else:
-                arr.append("%s(?:%s)" % (base_pattern, "|".join(arr2)))
+                arr.append("%s(?:%s)" % (subpath_pattern, "|".join(arr2)))
 
     def find(self, req_path):
         tupl = self._mapping_dict.get(req_path)
@@ -351,7 +361,7 @@ class OptimizedRegexpRouter(Router):
         self._mapping_dict = {}   # for urlpath having parameters
         self._mapping_list = []   # for urlpath having no parameters
         tuples = []
-        for tupl in self._traverse(mapping, ""):
+        for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
@@ -553,7 +563,7 @@ class HashedRegexpRouter(Router):
                 re.compile(x)    if isinstance(x, str) else
                 x)
         #
-        pairs = [ tupl for tupl in self._traverse(mapping, "") ]
+        pairs = [ tupl for tupl in self._traverse(mapping) ]
         prefixes = ( p[0].split('{')[0] for p in pairs if rexp.search(p[0]) )
         minlen = min( len(s) for s in prefixes ) or 0
         self._prefix_minlength = minlen
@@ -575,8 +585,8 @@ class HashedRegexpRouter(Router):
     def _traverse(self, mapping, base_path="", mapping_class=None):
         if mapping_class is None:
             mapping_class = type(mapping)
-        for sub_path, obj in mapping:
-            full_path = base_path + sub_path
+        for sub_path, obj in self._each_keyval(mapping):
+            full_path = base_path+sub_path
             if type(obj) is mapping_class:
                 yield from self._traverse(obj, full_path, mapping_class)
             else:
@@ -624,7 +634,7 @@ class StateMachineRouter(Router):
         ptypes = self.URLPATH_PARAM_TYPES
         self._pkeys = { t[0]: i for i, t in enumerate(ptypes) }  # ex: {'int': 0, 'date': 1, 'str': 2}
         self._pfuncs = [ t[1] for t in ptypes ]  # list of converter func
-        for t in self._traverse(mapping, ""):
+        for t in self._traverse(mapping):
             path_pat, handler_class, handler_methods = t
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
