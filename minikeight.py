@@ -34,7 +34,7 @@ class Router(object):
             return obj
 
     def _traverse(self, mapping, root_path=""):
-        for base_path, arg in mapping:
+        for base_path, arg in self._each_keyval(mapping):
             if isinstance(arg, list):
                 child_mapping = arg
                 yield from self._traverse(child_mapping, root_path+base_path)
@@ -306,7 +306,7 @@ class NestedRegexpRouter(Router):
         self._all_regexp = re.compile("^(?:%s)" % "|".join(all))
 
     def _traverse(self, mapping, root_path, arr):
-        for base_path, arg in mapping:
+        for base_path, arg in self._each_keyval(mapping):
             arr2 = []
             if isinstance(arg, list):
                 child_mapping = arg
@@ -581,7 +581,7 @@ class HashedRegexpRouter(Router):
     def _traverse(self, mapping, base_path="", mapping_class=None):
         if mapping_class is None:
             mapping_class = type(mapping)
-        for sub_path, obj in mapping:
+        for sub_path, obj in self._each_keyval(mapping):
             full_path = base_path + sub_path
             if type(obj) is mapping_class:
                 yield from self._traverse(obj, full_path, mapping_class)
