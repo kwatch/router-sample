@@ -13,7 +13,7 @@ from minikeight import (
     OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
 )
-from mock_handler import HomeAPI, BooksAPI, BookCommentsAPI, OrdersAPI, LIST_MAPPING
+from mock_handler import HomeAPI, BooksAPI, BookCommentsAPI, OrdersAPI, LIST_MAPPING, DICT_MAPPING
 
 
 class MockRouter(Router):
@@ -155,6 +155,13 @@ class Router_TestBase(object):
         @test("supports '.*' as suffix pattern.")
         def _(self, router):
             self._test_suffix_pattern(router)
+
+    with subject("#__init__()"):
+
+        @test("accepts dict mapping.")
+        def _(self):
+            router = self.ROUTER_CLASS(DICT_MAPPING)
+            self._test_when_found(router)
 
 
 class NaiveLinearRouter_TestCase(Router_TestBase):
