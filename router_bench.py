@@ -74,6 +74,22 @@ class CommentDummyAPI(RequestHandler):
             return {"action": "show", "parent_id": parent_id, "comment_id": comment_id}
 
 
+class BlablaAPI(RequestHandler):
+
+    with on.path('/'):
+
+        @on('GET')
+        def do_index(self, parent_id, comment_id):
+            return {"action": "show", "ids": [parent_id, comment_id]}
+
+    #with on.path('/{blabla_id:int}.*'):
+    with on.path('/{blabla_id:int}.json'):
+
+        @on('GET')
+        def do_show(self, parent_id, comment_id, blabla_id):
+            return {"action": "show", "ids": [parent_id, comment_id, blabla_id]}
+
+
 if True:
 
     import string
@@ -88,6 +104,7 @@ if True:
         path = "/%s" % (c * 3)
         dct[path] = DummyAPI
         dct[path+"/{id:int}/comments"] = CommentDummyAPI
+        #dct[path+"/{id:int}/comments/{comment_id:int}/blabla"] = BlablaAPI
     mapping = {"/api": dct}
 
 else:
@@ -133,11 +150,13 @@ router_classes = (
 
 urlpaths = (
     '/api/aaa/',
-    '/api/aaa/123.json',
-    #'/api/aaa/123/comments/999.json',
     '/api/zzz/',
+    '/api/aaa/123.json',
     '/api/zzz/789.json',
-    #'/api/zzz/789/comments/999.json',
+    '/api/aaa/123/comments/999.json',
+    '/api/zzz/789/comments/999.json',
+    #'/api/aaa/123/comments/999/blabla/888.json',
+    #'/api/zzz/789/comments/999/blabla/888.json',
 )
 
 def validate(urlpath, result):
@@ -149,6 +168,10 @@ def validate(urlpath, result):
         assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [123, 999]), "result=%r" % (result,)
     elif urlpath.endswith(('/789/comments/999', '/789/comments/999.json')):
         assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [789, 999]), "result=%r" % (result,)
+    elif urlpath.endswith(('/blabla/', '/blabla.json')):
+        assert result[0:2] == (BlablaAPI, BlablaAPI.do_index), "result=%r" % (result,)
+    elif urlpath.endswith(('/blabla/888', '/blabla/888.json')):
+        assert result[0:2] == (BlablaAPI, BlablaAPI.do_show), "result=%r" % (result,)
     else:
         assert result == (DummyAPI, DummyAPI.do_index, []), "result=%r" % (result,)
 
