@@ -58,20 +58,53 @@ class DummyAPI(RequestHandler):
             return {"action": "edit", "id": id}
 
 
-if False:
+class CommentDummyAPI(RequestHandler):
+
+    with on.path('/'):
+
+        @on('GET')
+        def do_index(self, parent_id):
+            return {"action": "index", "parent_id": parent_id}
+
+    #with on.path('/{comment_id:int}.*'):
+    with on.path('/{comment_id:int}.json'):
+
+        @on('GET')
+        def do_show(self, parent_id, comment_id):
+            return {"action": "show", "parent_id": parent_id, "comment_id": comment_id}
+
+
+class BlablaAPI(RequestHandler):
+
+    with on.path('/'):
+
+        @on('GET')
+        def do_index(self, parent_id, comment_id):
+            return {"action": "show", "ids": [parent_id, comment_id]}
+
+    #with on.path('/{blabla_id:int}.*'):
+    with on.path('/{blabla_id:int}.json'):
+
+        @on('GET')
+        def do_show(self, parent_id, comment_id, blabla_id):
+            return {"action": "show", "ids": [parent_id, comment_id, blabla_id]}
+
+
+if True:
 
     import string
     #arr = []
     #for c in string.ascii_lowercase:
     #    path = "/%s" % (c * 3)
     #    arr.append((path, DummyAPI))
-    #    #arr.append((path+"/{x_id}/comments", DummyAPI))
+    #    arr.append((path+"/{id:int}/comments", CommentDummyAPI))
     #mapping = [("/api", arr)]
     dct = {}
     for c in string.ascii_lowercase:
         path = "/%s" % (c * 3)
         dct[path] = DummyAPI
-        #dct[path+"/{x_id}/comments"] = DummyAPI
+        dct[path+"/{id:int}/comments"] = CommentDummyAPI
+        #dct[path+"/{id:int}/comments/{comment_id:int}/blabla"] = BlablaAPI
     mapping = {"/api": dct}
 
 else:
@@ -117,9 +150,13 @@ router_classes = (
 
 urlpaths = (
     '/api/aaa/',
-    '/api/aaa/123.json',
     '/api/zzz/',
+    '/api/aaa/123.json',
     '/api/zzz/789.json',
+    '/api/aaa/123/comments/999.json',
+    '/api/zzz/789/comments/999.json',
+    #'/api/aaa/123/comments/999/blabla/888.json',
+    #'/api/zzz/789/comments/999/blabla/888.json',
 )
 
 def validate(urlpath, result):
@@ -127,12 +164,21 @@ def validate(urlpath, result):
         assert result == (DummyAPI, DummyAPI.do_show, [123]), "result=%r" % (result,)
     elif urlpath.endswith(('/789', '/789.json')):
         assert result == (DummyAPI, DummyAPI.do_show, [789]), "result=%r" % (result,)
+    elif urlpath.endswith(('/123/comments/999', '/123/comments/999.json')):
+        assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [123, 999]), "result=%r" % (result,)
+    elif urlpath.endswith(('/789/comments/999', '/789/comments/999.json')):
+        assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [789, 999]), "result=%r" % (result,)
+    elif urlpath.endswith(('/blabla/', '/blabla.json')):
+        assert result[0:2] == (BlablaAPI, BlablaAPI.do_index), "result=%r" % (result,)
+    elif urlpath.endswith(('/blabla/888', '/blabla/888.json')):
+        assert result[0:2] == (BlablaAPI, BlablaAPI.do_show), "result=%r" % (result,)
     else:
         assert result == (DummyAPI, DummyAPI.do_index, []), "result=%r" % (result,)
 
 
 loop = 1000 * 1000
-with Benchmarker(loop, width=39, cycle=1, extra=0) as bench:
+width = 17 + max( len(x) for x in urlpaths )
+with Benchmarker(loop, width=width, cycle=1, extra=0) as bench:
 
     debug = bench.properties.get('debug', False)
 
