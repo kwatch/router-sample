@@ -58,6 +58,22 @@ class DummyAPI(RequestHandler):
             return {"action": "edit", "id": id}
 
 
+class CommentDummyAPI(RequestHandler):
+
+    with on.path('/'):
+
+        @on('GET')
+        def do_index(self, parent_id):
+            return {"action": "index", "parent_id": parent_id}
+
+    #with on.path('/{comment_id:int}.*'):
+    with on.path('/{comment_id:int}.json'):
+
+        @on('GET')
+        def do_show(self, parent_id, comment_id):
+            return {"action": "show", "parent_id": parent_id, "comment_id": comment_id}
+
+
 if False:
 
     import string
@@ -65,13 +81,13 @@ if False:
     #for c in string.ascii_lowercase:
     #    path = "/%s" % (c * 3)
     #    arr.append((path, DummyAPI))
-    #    #arr.append((path+"/{x_id}/comments", DummyAPI))
+    #    #arr.append((path+"/{id:int}/comments", CommentDummyAPI))
     #mapping = [("/api", arr)]
     dct = {}
     for c in string.ascii_lowercase:
         path = "/%s" % (c * 3)
         dct[path] = DummyAPI
-        #dct[path+"/{x_id}/comments"] = DummyAPI
+        #dct[path+"/{id:int}/comments"] = CommentDummyAPI
     mapping = {"/api": dct}
 
 else:
