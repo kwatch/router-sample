@@ -74,20 +74,20 @@ class CommentDummyAPI(RequestHandler):
             return {"action": "show", "parent_id": parent_id, "comment_id": comment_id}
 
 
-if False:
+if True:
 
     import string
     #arr = []
     #for c in string.ascii_lowercase:
     #    path = "/%s" % (c * 3)
     #    arr.append((path, DummyAPI))
-    #    #arr.append((path+"/{id:int}/comments", CommentDummyAPI))
+    #    arr.append((path+"/{id:int}/comments", CommentDummyAPI))
     #mapping = [("/api", arr)]
     dct = {}
     for c in string.ascii_lowercase:
         path = "/%s" % (c * 3)
         dct[path] = DummyAPI
-        #dct[path+"/{id:int}/comments"] = CommentDummyAPI
+        dct[path+"/{id:int}/comments"] = CommentDummyAPI
     mapping = {"/api": dct}
 
 else:
@@ -134,8 +134,10 @@ router_classes = (
 urlpaths = (
     '/api/aaa/',
     '/api/aaa/123.json',
+    #'/api/aaa/123/comments/999.json',
     '/api/zzz/',
     '/api/zzz/789.json',
+    #'/api/zzz/789/comments/999.json',
 )
 
 def validate(urlpath, result):
@@ -143,6 +145,10 @@ def validate(urlpath, result):
         assert result == (DummyAPI, DummyAPI.do_show, [123]), "result=%r" % (result,)
     elif urlpath.endswith(('/789', '/789.json')):
         assert result == (DummyAPI, DummyAPI.do_show, [789]), "result=%r" % (result,)
+    elif urlpath.endswith(('/123/comments/999', '/123/comments/999.json')):
+        assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [123, 999]), "result=%r" % (result,)
+    elif urlpath.endswith(('/789/comments/999', '/789/comments/999.json')):
+        assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [789, 999]), "result=%r" % (result,)
     else:
         assert result == (DummyAPI, DummyAPI.do_index, []), "result=%r" % (result,)
 
