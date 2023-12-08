@@ -177,7 +177,8 @@ def validate(urlpath, result):
 
 
 loop = 1000 * 1000
-with Benchmarker(loop, width=39, cycle=1, extra=0) as bench:
+width = 17 + max( len(x) for x in urlpaths )
+with Benchmarker(loop, width=width, cycle=1, extra=0) as bench:
 
     debug = bench.properties.get('debug', False)
 
