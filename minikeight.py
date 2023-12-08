@@ -27,6 +27,12 @@ class Router(object):
         handler_func = fn(req_meth) or (req_meth == 'HEAD' and fn('GET')) or fn('ANY')
         return handler_class, handler_func, param_args  # handler_func may be None
 
+    def _each_keyval(self, obj):
+        if isinstance(obj, dict):
+            return obj.items()
+        else:
+            return obj
+
     def _traverse(self, mapping, root_path=""):
         for base_path, arg in mapping:
             if isinstance(arg, list):
