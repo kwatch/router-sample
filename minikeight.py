@@ -638,7 +638,7 @@ class StateMachineRouter(Router):
             return None
     URLPATH_PARAM_TYPES = [
         ('int'  , lambda s: (int(s) if s.isdigit() else None)),
-        ('date' , _date),
+        #('date' , _date),
         ('str'  , lambda s: s or None),
         #('path' , lambda s: s),
     ]
@@ -707,15 +707,33 @@ class StateMachineRouter(Router):
                 d = d2
                 continue
             #
-            for i, pfunc in enumerate(pfuncs):
-                d2 = d.get(i)
+            #for i, pfunc in enumerate(pfuncs):
+            #    d2 = d.get(i)
+            #    if d2 is not None:
+            #        v = pfunc(item)
+            #        if v is not None:
+            #            param_args.append(v)
+            #            break
+            #else:
+            #    return None
+            #
+            while True:
+                d2 = d.get(0)
                 if d2 is not None:
-                    v = pfunc(item)
+                    v = pfuncs[0](item)
                     if v is not None:
                         param_args.append(v)
                         break
-            else:
+                #
+                d2 = d.get(1)
+                if d2 is not None:
+                    v = pfuncs[1](item)
+                    if v is not None:
+                        param_args.append(v)
+                        break
+                #
                 return None
+            #
             d = d2
         #
         t = d.get(None)
