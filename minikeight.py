@@ -559,8 +559,8 @@ class SlicedRegexpRouter(OptimizedRegexpRouter):
                               (fn1(s2) if fn2 else s2),]
         else:
             m2 = path_rexp.match(req_path)
-            param_args = [ (f(s) if f is not None else s)
-                               for s, f in zip(m2.groups(), param_funcs) ]
+            param_args = [ (fn(s) if fn else s)
+                               for s, fn in zip(m2.groups(), param_funcs) ]
         return handler_class, handler_methods, param_args
 
 
