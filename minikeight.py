@@ -509,19 +509,26 @@ class SlicedRegexpRouter(OptimizedRegexpRouter):
         OptimizedRegexpRouter.__init__(self, mapping)
         new_list = []
         for t in self._mapping_list:
-            urlpath_pattern, _, _, _, param_names, _ = t
-            slice_ = self._slice(urlpath_pattern, param_names)
-            new_list.append(t + (slice_,))
+            urlpath_pattern = t[0]
+            slice_, sep, has_suffix = self._slice(urlpath_pattern)
+            new_list.append(t + (slice_, sep, has_suffix))
         self._mapping_list = new_list
 
-    def _slice(self, urlpath_pattern, param_names):
-        if len(param_names) != 1:
-            return None
-        if urlpath_pattern.endswith('.*'):
-            return None
-        l_idx = urlpath_pattern.index('{')
-        r_idx = urlpath_pattern.rindex('}')
-        return slice(l_idx, (r_idx - len(urlpath_pattern) + 1) or None)
+    def _slice(self, urlpath_pattern, _separator=re.compile(r'\{.*?\}')):
+        has_suffix = urlpath_pattern.endswith('.*')
+        if has_suffix:
+            urlpath_pattern = urlpath_pattern[:-2]  # ex: '/{id}.*' => '/{id}'
+        arr = _separator.split(urlpath_pattern)     # ex: '/books/{id}.json' => ('/books/', 'json')
+        if len(arr) == 2:
+            l_idx = len(arr[0])
+            r_idx = - len(arr[1]) or None
+            return slice(l_idx, r_idx), None, has_suffix
+        elif len(arr) == 3 and arr[1] != "":
+            l_idx = len(arr[0])
+            r_idx = - len(arr[2]) or None
+            return slice(l_idx, r_idx), arr[1], has_suffix
+        else:
+            return None, None, has_suffix
 
     def find(self, req_path):
         tupl = self._mapping_dict.get(req_path)
@@ -536,11 +543,20 @@ class SlicedRegexpRouter(OptimizedRegexpRouter):
         #idx = m.groups().index("")  # ex: m.groups() == [None, None, "", None]
         idx = m.lastindex - 1
         #
-        _, path_rexp, handler_class, handler_methods, _, param_funcs, slice_ = self._mapping_list[idx]
-        if slice_ is not None:
-            s = req_path[slice_]
-            f = param_funcs[0]
-            param_args = [f(s) if f is not None else s]
+        (_, path_rexp, handler_class, handler_methods,
+         _, param_funcs, slice_, sep, has_suffix) = self._mapping_list[idx]
+        if slice_:
+            if has_suffix:
+                req_path = splitext(req_path)[0]     # ex: "/123.json" -> "/123"
+            s = req_path[slice_]                     # ex: "/books/123/comments/456.json" -> "123/comments/456"
+            if sep is None:
+                fn = param_funcs[0]
+                param_args = [fn(s) if fn else s]    # ex: "123" -> [123]
+            else:
+                s1, s2 = s.split(sep)                # ex: "123/comments/456" -> ["123", "456"]
+                fn1, fn2 = param_funcs
+                param_args = [(fn1(s1) if fn1 else s1),   # ex: ["123", "456"] -> [123, 456]
+                              (fn1(s2) if fn2 else s2),]
         else:
             m2 = path_rexp.match(req_path)
             param_args = [ (f(s) if f is not None else s)
