@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import sys, re, json
+from os.path import splitext
 from datetime import date
 from wsgiref.util import setup_testing_defaults
 
