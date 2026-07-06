@@ -174,7 +174,7 @@ class FixedLinearRouter(Router):
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having no parameters
-        self._mapping_list = []   # for urlpath having parameters
+        self._mapping_list = []   # for urlpath having any parameters
         for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
@@ -207,7 +207,7 @@ class HashedLinearRouter(Router):
 
     def __init__(self, mapping):
         self._mapping_dict = {}   # for urlpath having no parameters
-        self._mapping_hash = {}   # for urlpath having parameters
+        self._mapping_hash = {}   # for urlpath having any parameters
         self._hashkey_len  = 0
         #
         mapping_list = []
@@ -256,8 +256,8 @@ class NaiveRegexpRouter(Router):
     """Regexp (naive)"""
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
-        self._mapping_list = []   # for urlpath having no parameters
+        self._mapping_dict = {}   # for urlpath having no parameters
+        self._mapping_list = []   # for urlpath having any parameters
         all = []; i = 0; pos = 0
         for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
@@ -302,8 +302,8 @@ class SmartRegexpRouter(Router):
     """Regexp (smart)"""
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
-        self._mapping_list = []   # for urlpath having no parameters
+        self._mapping_dict = {}   # for urlpath having no parameters
+        self._mapping_list = []   # for urlpath having any parameters
         all = []
         for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
@@ -343,8 +343,8 @@ class NestedRegexpRouter(Router):
     """Regexp (nested)"""
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
-        self._mapping_list = []   # for urlpath having no parameters
+        self._mapping_dict = {}   # for urlpath having no parameters
+        self._mapping_list = []   # for urlpath having any parameters
         all = []
         for tupl in self._traverse(mapping, "", all):
             path_pat, handler_class, handler_methods = tupl
@@ -408,8 +408,8 @@ class OptimizedRegexpRouter(Router):
     """Regexp (optimized)"""
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
-        self._mapping_list = []   # for urlpath having no parameters
+        self._mapping_dict = {}   # for urlpath having no parameters
+        self._mapping_list = []   # for urlpath having any parameters
         tuples = []
         for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
@@ -621,7 +621,7 @@ class HashedRegexpRouter(Router):
     SUBROUTER_CLASS = SlicedRegexpRouter
 
     def __init__(self, mapping, prefix_minlength_target=re.compile(r'^/\w')):
-        self._mapping_dict = {}   # for urlpath having parameters
+        self._mapping_dict = {}   # for urlpath having no parameters
         self._subrouters   = {}   # {prefix: OptimizedRegexpRouter}
         #
         x = prefix_minlength_target
