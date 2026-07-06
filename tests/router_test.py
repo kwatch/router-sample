@@ -8,7 +8,7 @@ from oktest import ok, test, subject, situation, at_end
 
 from minikeight import (
     Router,
-    NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter,
+    NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter, HashedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
     OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
     StateMachineRouter,
@@ -174,6 +174,10 @@ class PrefixLinearRouter_TestCase(Router_TestBase):
 
 class FixedLinearRouter_TestCase(Router_TestBase):
     ROUTER_CLASS = FixedLinearRouter
+
+
+class HashedLinearRouter_TestCase(Router_TestBase):
+    ROUTER_CLASS = HashedLinearRouter
 
 
 class NaiveRegexpRouter_TestCase(Router_TestBase):
