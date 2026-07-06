@@ -173,9 +173,8 @@ class FixedLinearRouter(Router):
     """Linear (fixedpath)"""
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
-        self._mapping_list = []   # for urlpath having no parameters
-        append = self._mapping_list.append
+        self._mapping_dict = {}   # for urlpath having no parameters
+        self._mapping_list = []   # for urlpath having parameters
         for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
