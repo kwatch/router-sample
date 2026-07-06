@@ -202,6 +202,56 @@ class FixedLinearRouter(Router):
         return None
 
 
+class HashedLinearRouter(Router):
+    """Linear (hashed by prefix)"""
+
+    def __init__(self, mapping):
+        self._mapping_dict = {}   # for urlpath having no parameters
+        self._mapping_hash = {}   # for urlpath having parameters
+        self._hashkey_len  = 0
+        #
+        mapping_list = []
+        for tupl in self._traverse(mapping):
+            path_pat, handler_class, handler_methods = tupl
+            if '{' not in path_pat:
+                self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
+            else:
+                path_prefix = path_pat.split('{', 1)[0]
+                path_rexp, param_names, param_funcs = self._compile(path_pat)
+                t = (path_pat, path_prefix, path_rexp,
+                     handler_class, handler_methods, param_names, param_funcs)
+                mapping_list.append(t)
+        #
+        hashtable = self._mapping_hash
+        minlen = min( len(t[1]) for t in mapping_list )
+        self._hashkey_len = minlen
+        for t in mapping_list:
+            path_prefix = t[1]
+            hashkey = path_prefix[0:minlen]
+            if hashkey not in hashtable:
+                hashtable[hashkey] = []
+            hashtable[hashkey].append(t)
+
+    def find(self, req_path):
+        tupl = self._mapping_dict.get(req_path)
+        if tupl:
+            return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        hashkey = req_path[0:self._hashkey_len]
+        if hashkey not in self._mapping_hash:
+            return None
+        mapping_list = self._mapping_hash[hashkey]
+        for t in mapping_list:
+            _, path_prefix, path_rexp, handler_class, handler_methods, _, param_funcs = t
+            if not req_path.startswith(path_prefix):
+                continue
+            m = path_rexp.match(req_path)
+            if m:
+                param_args = [ (f(s) if f is not None else s)
+                                   for s, f in zip(m.groups(), param_funcs) ]
+                return handler_class, handler_methods, param_args
+        return None
+
+
 class NaiveRegexpRouter(Router):
     """Regexp (naive)"""
 
