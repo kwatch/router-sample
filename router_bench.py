@@ -14,7 +14,7 @@ from minikeight import (
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter, HashedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
     OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
-    StateMachineRouter,
+    TrieRouter, StateMachineRouter,
 )
 
 
@@ -145,7 +145,7 @@ router_classes = (
     NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter, HashedLinearRouter,
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
     OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
-    StateMachineRouter,
+    TrieRouter, StateMachineRouter,
 )
 
 urlpaths = (
