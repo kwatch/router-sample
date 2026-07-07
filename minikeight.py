@@ -108,20 +108,11 @@ class Router(object):
             return True
         return False
 
-    def _date(s):
-        try:
-            yr, mo, dy = s.split('-')
-            return date(int(yr), int(mo), int(dy))
-        except:
-            return None
-
     URLPATH_PARAM_TYPES = {
         'int'  : (r'\d+'   , int),
         'str'  : (r'[^./]+', None),
-        'date' : (r'\d\d\d\d-\d\d-\d\d', _date),
         'path' : (r'.*'    , None),
     }
-    del _date
 
     def _escape(self, s, _fn=lambda m: '\\'+m.group(0)):
         return re.sub(r'[.*+?^$|\[\]{}()]', _fn, s)
