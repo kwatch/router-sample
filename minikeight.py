@@ -693,7 +693,7 @@ class TrieRouter(Router):
     PARAM_TYPES = {'int': 1, 'str': 2, 'path': 3}
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
+        self._mapping_dict = {}   # for urlpath having no parameters
         self._tree_root = self.Node()
         for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
