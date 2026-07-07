@@ -101,6 +101,13 @@ class Router(object):
         arr.append(end)
         return re.compile("".join(arr)), param_names, param_funcs
 
+    def _is_valid_suffix(self, actual_suffix, expected_suffix):
+        if actual_suffix == expected_suffix:
+            return True
+        if expected_suffix == '.*':
+            return True
+        return False
+
     def _date(s):
         try:
             yr, mo, dy = s.split('-')
@@ -782,16 +789,9 @@ class TrieRouter(Router):
         if t is None:
             return None
         handler_class, handler_methods, param_names, expected_suffix = t
-        if not self._valid_suffix(suffix, expected_suffix):
+        if not self._is_valid_suffix(suffix, expected_suffix):
             return None
         return handler_class, handler_methods, param_args
-
-    def _valid_suffix(self, actual_suffix, expected_suffix):
-        if actual_suffix == expected_suffix:
-            return True
-        if expected_suffix == '.*':
-            return True
-        return False
 
 
 class StateMachineRouter(Router):
