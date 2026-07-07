@@ -733,13 +733,12 @@ class TrieRouter(Router):
                     raise RouterError("%s: duplicate param name %r." % (path_pat, pname))
                 pnames.append(pname)
                 if ptype is None:
-                    key = param_types['str']                 # ex: 2 (str)
-                elif ptype in param_types:
-                    key = param_types[ptype]                 # ex: 1 (int)
-                else:
+                    ptype = self._guess_ptype(pname)   # 'int' if 'id' or 'xxx_id'
+                if ptype not in param_types:
                     raise RouterError("%s: unknown parameter type %r." % (path_pat, ptype))
+                key = param_types[ptype]               # ex: 1 (int) or 2 (str)
             else:
-                key = item                                   # ex: "users"
+                key = item                             # ex: "users"
             if key not in node.children:
                 node.children[key] = self.Node()
             node = node.children[key]
@@ -840,13 +839,12 @@ class StateMachineRouter(Router):
                     raise RouterError("%s: duplicate param name %r." % (path_pat, pname))
                 pnames.append(pname)
                 if ptype is None:
-                    key = param_types['str']                 # ex: 2 (str)
-                elif ptype in param_types:
-                    key = param_types[ptype]                 # ex: 1 (int)
-                else:
+                    ptype = self._guess_ptype(pname)   # 'int' if 'id' or 'xxx_id'
+                if ptype not in param_types:
                     raise RouterError("%s: unknown parameter type %r." % (path_pat, ptype))
+                key = param_types[ptype]               # ex: 1 (int) or 2 (str)
             else:
-                key = item                                   # ex: "users"
+                key = item                             # ex: "users"
             if key not in d:
                 d[key] = {}
             d = d[key]
