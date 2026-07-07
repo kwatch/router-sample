@@ -6,7 +6,7 @@
 ## for details of 'benchmarker.py'.
 ##
 
-import sys
+import sys, os, re
 from benchmarker import Benchmarker
 
 from minikeight import (
@@ -15,6 +15,24 @@ from minikeight import (
     NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
     OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
     TrieRouter, StateMachineRouter,
+)
+
+
+router_classes = (
+    NaiveLinearRouter,
+    PrefixLinearRouter,
+    FixedLinearRouter,
+    HashedLinearRouter,
+    #
+    NaiveRegexpRouter,
+    SmartRegexpRouter,
+    NestedRegexpRouter,
+    OptimizedRegexpRouter,
+    SlicedRegexpRouter,
+    HashedRegexpRouter,
+    #
+    TrieRouter,
+    StateMachineRouter,
 )
 
 
@@ -90,90 +108,115 @@ class BlablaAPI(RequestHandler):
             return {"action": "show", "ids": [parent_id, comment_id, blabla_id]}
 
 
-if True:
+class MockAPI(RequestHandler):
+
+    with on.path(''):
+
+        @on('GET')
+        def do_any(self, *params):
+            return {"params": params}
+
+
+benchtype = os.environ.get('BENCHTYPE') or None
+if benchtype == None:
+
+    urlpaths = (
+        '/api/aaa/',
+        '/api/zzz/',
+        '/api/aaa/123.json',
+        '/api/zzz/789.json',
+        '/api/aaa/123/comments/999.json',
+        '/api/zzz/789/comments/999.json',
+        #'/api/aaa/123/comments/999/blabla/888.json',
+        #'/api/zzz/789/comments/999/blabla/888.json',
+    )
 
     import string
-    #arr = []
-    #for c in string.ascii_lowercase:
-    #    path = "/%s" % (c * 3)
-    #    arr.append((path, DummyAPI))
-    #    arr.append((path+"/{id:int}/comments", CommentDummyAPI))
-    #mapping = [("/api", arr)]
     dct = {}
     for c in string.ascii_lowercase:
-        path = "/%s" % (c * 3)
+        path = "/%s" % (c * 3)   # ex: "/aaa", "/bbb", ...
         dct[path] = DummyAPI
         dct[path+"/{id:int}/comments"] = CommentDummyAPI
         #dct[path+"/{id:int}/comments/{comment_id:int}/blabla"] = BlablaAPI
     mapping = {"/api": dct}
+    ## same as below
+    #mapping = {
+    #    "/api": {
+    #        {"/aaa": DummyAPI, "/aaa/{id:int}/comments": CommentDummyAPI},
+    #        {"/bbb": DummyAPI, "/bbb/{id:int}/comments": CommentDummyAPI},
+    #        {"/ccc": DummyAPI, "/ccc/{id:int}/comments": CommentDummyAPI},
+    #        {"/ddd": DummyAPI, "/ddd/{id:int}/comments": CommentDummyAPI},
+    #        {"/eee": DummyAPI, "/eee/{id:int}/comments": CommentDummyAPI},
+    #        {"/fff": DummyAPI, "/fff/{id:int}/comments": CommentDummyAPI},
+    #        {"/ggg": DummyAPI, "/ggg/{id:int}/comments": CommentDummyAPI},
+    #        {"/hhh": DummyAPI, "/hhh/{id:int}/comments": CommentDummyAPI},
+    #        {"/iii": DummyAPI, "/iii/{id:int}/comments": CommentDummyAPI},
+    #        {"/jjj": DummyAPI, "/jjj/{id:int}/comments": CommentDummyAPI},
+    #        {"/kkk": DummyAPI, "/kkk/{id:int}/comments": CommentDummyAPI},
+    #        {"/lll": DummyAPI, "/lll/{id:int}/comments": CommentDummyAPI},
+    #        {"/mmm": DummyAPI, "/mmm/{id:int}/comments": CommentDummyAPI},
+    #        {"/nnn": DummyAPI, "/nnn/{id:int}/comments": CommentDummyAPI},
+    #        {"/ooo": DummyAPI, "/ooo/{id:int}/comments": CommentDummyAPI},
+    #        {"/ppp": DummyAPI, "/ppp/{id:int}/comments": CommentDummyAPI},
+    #        {"/qqq": DummyAPI, "/qqq/{id:int}/comments": CommentDummyAPI},
+    #        {"/rrr": DummyAPI, "/rrr/{id:int}/comments": CommentDummyAPI},
+    #        {"/sss": DummyAPI, "/sss/{id:int}/comments": CommentDummyAPI},
+    #        {"/ttt": DummyAPI, "/ttt/{id:int}/comments": CommentDummyAPI},
+    #        {"/uuu": DummyAPI, "/uuu/{id:int}/comments": CommentDummyAPI},
+    #        {"/vvv": DummyAPI, "/vvv/{id:int}/comments": CommentDummyAPI},
+    #        {"/www": DummyAPI, "/www/{id:int}/comments": CommentDummyAPI},
+    #        {"/xxx": DummyAPI, "/xxx/{id:int}/comments": CommentDummyAPI},
+    #        {"/yyy": DummyAPI, "/yyy/{id:int}/comments": CommentDummyAPI},
+    #        {"/zzz": DummyAPI, "/zzz/{id:int}/comments": CommentDummyAPI},
+    #    },
+    #}
+
+elif benchtype == "many":
+
+    urlpaths = (
+        '/api/aaa000/',
+        '/api/zzz099/',
+        '/api/aaa000/123.json',
+        '/api/zzz099/789.json',
+        '/api/aaa000/123/comments/999.json',
+        '/api/zzz099/789/comments/999.json',
+        #'/api/aaa000/123/comments/999/blabla/888.json',
+        #'/api/zzz099/789/comments/999/blabla/888.json',
+    )
+
+    import string
+    dct = {}
+    for i in range(100):
+        for c in string.ascii_lowercase:
+            path = "/%s" % (c * 3) + "%03d" % i
+            dct[path] = DummyAPI
+            dct[path+"/{id:int}/comments"] = CommentDummyAPI
+            #dct[path+"/{id:int}/comments/{comment_id:int}/blabla"] = BlablaAPI
+    mapping = {"/api": dct}
 
 else:
 
-    mapping = {
-        "/api": {
-            "/aaa":  DummyAPI,
-            "/bbb":  DummyAPI,
-            "/ccc":  DummyAPI,
-            "/ddd":  DummyAPI,
-            "/eee":  DummyAPI,
-            "/fff":  DummyAPI,
-            "/ggg":  DummyAPI,
-            "/hhh":  DummyAPI,
-            "/iii":  DummyAPI,
-            "/jjj":  DummyAPI,
-            "/kkk":  DummyAPI,
-            "/lll":  DummyAPI,
-            "/mmm":  DummyAPI,
-            "/nnn":  DummyAPI,
-            "/ooo":  DummyAPI,
-            "/ppp":  DummyAPI,
-            "/qqq":  DummyAPI,
-            "/rrr":  DummyAPI,
-            "/sss":  DummyAPI,
-            "/ttt":  DummyAPI,
-            "/uuu":  DummyAPI,
-            "/vvv":  DummyAPI,
-            "/www":  DummyAPI,
-            "/xxx":  DummyAPI,
-            "/yyy":  DummyAPI,
-            "/zzz":  DummyAPI,
-        },
-    }
+    raise Exception("%s : Unknonw benchmark type." % (benchtype,))
 
-
-router_classes = (
-    NaiveLinearRouter, PrefixLinearRouter, FixedLinearRouter, HashedLinearRouter,
-    NaiveRegexpRouter, SmartRegexpRouter, NestedRegexpRouter,
-    OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
-    TrieRouter, StateMachineRouter,
-)
-
-urlpaths = (
-    '/api/aaa/',
-    '/api/zzz/',
-    '/api/aaa/123.json',
-    '/api/zzz/789.json',
-    '/api/aaa/123/comments/999.json',
-    '/api/zzz/789/comments/999.json',
-    #'/api/aaa/123/comments/999/blabla/888.json',
-    #'/api/zzz/789/comments/999/blabla/888.json',
-)
 
 def validate(urlpath, result):
-    if urlpath.endswith(('/123', '/123.json')):
-        assert result == (DummyAPI, DummyAPI.do_show, [123]), "result=%r" % (result,)
-    elif urlpath.endswith(('/789', '/789.json')):
-        assert result == (DummyAPI, DummyAPI.do_show, [789]), "result=%r" % (result,)
-    elif urlpath.endswith(('/123/comments/999', '/123/comments/999.json')):
-        assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [123, 999]), "result=%r" % (result,)
-    elif urlpath.endswith(('/789/comments/999', '/789/comments/999.json')):
-        assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [789, 999]), "result=%r" % (result,)
-    elif urlpath.endswith(('/blabla/', '/blabla.json')):
-        assert result[0:2] == (BlablaAPI, BlablaAPI.do_index), "result=%r" % (result,)
-    elif urlpath.endswith(('/blabla/888', '/blabla/888.json')):
-        assert result[0:2] == (BlablaAPI, BlablaAPI.do_show), "result=%r" % (result,)
+    if benchtype == None or benchtype == "many":
+        if urlpath.endswith(('/123', '/123.json')):
+            assert result == (DummyAPI, DummyAPI.do_show, [123]), "result=%r" % (result,)
+        elif urlpath.endswith(('/789', '/789.json')):
+            assert result == (DummyAPI, DummyAPI.do_show, [789]), "result=%r" % (result,)
+        elif urlpath.endswith(('/123/comments/999', '/123/comments/999.json')):
+            assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [123, 999]), "result=%r" % (result,)
+        elif urlpath.endswith(('/789/comments/999', '/789/comments/999.json')):
+            assert result == (CommentDummyAPI, CommentDummyAPI.do_show, [789, 999]), "result=%r" % (result,)
+        elif urlpath.endswith(('/blabla/', '/blabla.json')):
+            assert result[0:2] == (BlablaAPI, BlablaAPI.do_index), "result=%r" % (result,)
+        elif urlpath.endswith(('/blabla/888', '/blabla/888.json')):
+            assert result[0:2] == (BlablaAPI, BlablaAPI.do_show), "result=%r" % (result,)
+        else:
+            assert result == (DummyAPI, DummyAPI.do_index, []), "result=%r" % (result,)
     else:
-        assert result == (DummyAPI, DummyAPI.do_index, []), "result=%r" % (result,)
+        raise Exception("%s : Unknonw benchmark type." % (benchtype,))
 
 
 loop = 1000 * 1000
@@ -185,9 +228,13 @@ with Benchmarker(loop, width=width, cycle=1, extra=0) as bench:
     for router_class in router_classes:
         for urlpath in urlpaths:
             label = router_class.__name__.replace('Router', '')
+            if router_class.__name__.startswith("Hashed"):
+                router_obj = router_class(mapping, r'^/api/\w\w')
+            else:
+                router_obj = router_class(mapping)
 
             @bench("%-15s: %-16s" % (label, urlpath))
-            def _(bm, router=router_class(mapping), urlpath=urlpath):
+            def _(bm, router=router_obj, urlpath=urlpath):
                 for _ in bm:
                     result = router.lookup('GET', urlpath)
                 #
