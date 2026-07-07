@@ -212,7 +212,7 @@ class FixedLinearRouter(Router):
 class HashedLinearRouter(Router):
     """Linear (hashed by prefix)"""
 
-    def __init__(self, mapping):
+    def __init__(self, mapping, prefix_minlength_target=re.compile(r'^/\w')):
         self._mapping_dict = {}   # for urlpath having no parameters
         self._mapping_hash = {}   # for urlpath having any parameters
         self._hashkey_len  = 0
@@ -229,15 +229,28 @@ class HashedLinearRouter(Router):
                      handler_class, handler_methods, param_names, param_funcs)
                 mapping_list.append(t)
         #
-        hashtable = self._mapping_hash
-        minlen = min( len(t[1]) for t in mapping_list )
+        x = prefix_minlength_target
+        rexp = (re.compile(r'.') if x is None else
+                re.compile(x)    if isinstance(x, str) else
+                x)
+        try:
+            minlen = min( len(t[1]) for t in mapping_list if rexp.search(t[1]) )
+        except ValueError:
+            raise RouterError("No url path matched to %r." % (rexp,))
         self._hashkey_len = minlen
+        #
+        hashtable = self._mapping_hash
         for t in mapping_list:
             path_prefix = t[1]
-            hashkey = path_prefix[0:minlen]
+            if rexp.search(path_prefix):
+                hashkey = path_prefix[0:minlen]
+            else:
+                hashkey = None
             if hashkey not in hashtable:
                 hashtable[hashkey] = []
             hashtable[hashkey].append(t)
+        if None not in hashtable:
+            hashtable[None] = []
 
     def find(self, req_path):
         tupl = self._mapping_dict.get(req_path)
@@ -245,7 +258,7 @@ class HashedLinearRouter(Router):
             return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
         hashkey = req_path[0:self._hashkey_len]
         if hashkey not in self._mapping_hash:
-            return None
+            hashkey = None
         mapping_list = self._mapping_hash[hashkey]
         for t in mapping_list:
             _, path_prefix, path_rexp, handler_class, handler_methods, _, param_funcs = t
