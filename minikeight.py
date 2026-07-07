@@ -674,6 +674,124 @@ class HashedRegexpRouter(Router):
         return None
 
 
+class TrieRouter(Router):
+    """Trie-base router"""
+
+    class Node(object):
+        __slots__ = ('children', 'target')
+        def __init__(self):
+            self.children = {}
+            self.target   = None
+
+    PARAM_TYPES = {'int': 1, 'str': 2, 'path': 3}
+
+    def __init__(self, mapping):
+        self._mapping_dict = {}   # for urlpath having parameters
+        self._tree_root = self.Node()
+        for tupl in self._traverse(mapping):
+            path_pat, handler_class, handler_methods = tupl
+            if '{' not in path_pat:
+                self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
+            else:
+                self._register(path_pat, handler_class, handler_methods)
+
+    def _register(self, path_pat, handler_class, handler_methods):
+        assert path_pat.startswith('/') or not path, "** path_pat=%r" % (path_pat,)
+        path, suffix = splitext(path_pat)
+        items = path.split('/')
+        if path.startswith('/'):
+            items.pop(0)
+        #
+        pnames = []
+        param_types = self.PARAM_TYPES
+        node = self._tree_root
+        for item in items:
+            if item and item[0] == '{' and item[-1] == '}':  # ex: "{id:int}"
+                pair = item[1:-1].split(':', 1)              # ex: ("id", "int")
+                pname = pair[0]                              # ex: "id"
+                ptype = len(pair) == 2 and pair[1] or None   # ex: "int", or None
+                if pname in pnames:
+                    raise RouterError("%s: duplicate param name %r." % (path_pat, pname))
+                pnames.append(pname)
+                if ptype is None:
+                    key = param_types['str']                 # ex: 2 (str)
+                elif ptype in param_types:
+                    key = param_types[ptype]                 # ex: 1 (int)
+                else:
+                    raise RouterError("%s: unknown parameter type %r." % (path_pat, ptype))
+            else:
+                key = item                                   # ex: "users"
+            if key not in node.children:
+                node.children[key] = self.Node()
+            node = node.children[key]
+        #
+        if node.target is not None:
+            raise RouterError("%s: duplicated urlpath in %s and %s." %
+                              (path_pat, node.target[0].__name__, handler_class.__name__))
+        node.target = (handler_class, handler_methods, pnames, suffix)
+
+    def find(self, req_path):
+        tupl = self._mapping_dict.get(req_path)
+        if tupl:
+            return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
+        #
+        path, suffix = splitext(req_path)
+        items = path.split('/')
+        if path.startswith('/'):
+            items.pop(0)
+        #
+        node = self._tree_root
+        param_args = []
+        for i, item in enumerate(items):
+            node2 = node.children.get(item)
+            if node2 is not None:
+                node = node2
+                continue
+            #
+            node2 = node.children.get(1)  # 1: int
+            if node2 is not None:
+                try:
+                    intval = int(item)
+                except ValueError:
+                    pass
+                else:
+                    if intval >= 0:
+                        param_args.append(intval)
+                        node = node2
+                        continue
+            #
+            node2 = node.children.get(2)  # 2: str
+            if node2 is not None:
+                if item:
+                    param_args.append(item)
+                    node = node2
+                    continue
+            #
+            node2 = node.children.get(3)  # 3: path
+            if node2 is not None:
+                param_args.append("/".join(items[i:]) + suffix)
+                suffix = ""
+                node = node2
+                break
+            #
+            return None
+        #
+        t = node.target
+        if t is None:
+            return None
+        handler_class, handler_methods, param_names, expected_suffix = t
+        if not self._valid_suffix(suffix, expected_suffix):
+            return None
+        return handler_class, handler_methods, param_args
+
+    def _valid_suffix(self, actual_suffix, expected_suffix):
+        if actual_suffix == expected_suffix:
+            return True
+        if expected_suffix == '.*':
+            return True
+        return False
+
+
 class StateMachineRouter(Router):
     """StateMachine"""
 
