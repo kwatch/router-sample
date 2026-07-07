@@ -66,7 +66,8 @@ class Router(object):
             if not m2:
                 raise RouterError("%s: invalid placeholder (expected '{name:type<rexp>})'" % urlpath_pattern)
             pname, ptype = m2.groups()
-            ptype = ptype[1:] if ptype else 'str'
+            ptype = (ptype[1:] if ptype else      # ex: ':int' -> 'int'
+                     self._guess_ptype(pname))    # ex: 'int' if 'id' or 'xx_id'
             tupl = self.URLPATH_PARAM_TYPES.get(ptype, None)
             if tupl is None:
                 raise RouterError("%s: unknown param type '%s'." % (urlpath_pattern, ptype))
@@ -76,6 +77,13 @@ class Router(object):
                 urlpath_pattern)
         if text:
             yield text, None, None, None, None
+
+    def _guess_ptype(self, pname):
+        if pname == "id":
+            return 'int'
+        if pname.endswith("_id"):
+            return 'int'
+        return 'str'
 
     def _compile(self, urlpath_pattern, begin='^', end='$', grouping=True):
         if urlpath_pattern.endswith('.*'):
