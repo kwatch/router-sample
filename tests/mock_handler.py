@@ -81,7 +81,7 @@ class OrdersAPI(RequestHandler):
         def do_create(self):
             return {"action": "create"}
 
-    with on.path('/{id:int}.*'):
+    with on.path('/{id}.*'):
 
         @on('GET')
         def do_show(self, id):
@@ -95,7 +95,7 @@ class OrdersAPI(RequestHandler):
         def do_delete(self, id):
             return {"action": "delete", "id": id}
 
-    with on.path('/{id:int}/edit.html'):
+    with on.path('/{id}/edit.html'):
 
         @on('GET')
         def show_edit_form(self, id):
