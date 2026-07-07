@@ -194,6 +194,32 @@ elif benchtype == "many":
             #dct[path+"/{id:int}/comments/{comment_id:int}/blabla"] = BlablaAPI
     mapping = {"/api": dct}
 
+elif benchtype == "githubapi":
+
+    urlpaths = (
+        #'/repos/{owner}/{repo}',
+        '/repos/owner1/repo2',
+        #'/repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments',
+        '/repos/owner1/repo2/pulls/333/reviews/444/comments',
+        #'/teams/{team_id}/memberships/{username}',
+        '/teams/12345/memberships/username1',
+    )
+    urlpaths = tuple( "/api" + x for x in urlpaths )
+
+    datafile = "data/github-api-paths.txt"
+    dct = {}
+    callback = lambda m: m.group(0).replace('-', '_')  # ex: '{foo-id}' -> '{foo_id}'
+    with open(datafile) as f:
+        for line in f:
+            #urlpath = line.strip()
+            urlpath = re.sub(r'\{.*\}', callback, line.strip())
+            if not urlpath:
+                continue
+            if urlpath.startswith('#'):
+                continue
+            dct[urlpath] = MockAPI
+    mapping = {"/api": dct}
+
 else:
 
     raise Exception("%s : Unknonw benchmark type." % (benchtype,))
@@ -215,6 +241,15 @@ def validate(urlpath, result):
             assert result[0:2] == (BlablaAPI, BlablaAPI.do_show), "result=%r" % (result,)
         else:
             assert result == (DummyAPI, DummyAPI.do_index, []), "result=%r" % (result,)
+    elif benchtype == "githubapi":
+        if urlpath == "/api/repos/owner1/repo2":
+            assert result == (MockAPI, MockAPI.do_any, ["owner1", "repo2"]), "result=%r" % (result,)
+        elif urlpath == "/api/repos/owner1/repo2/pulls/333/reviews/444/comments":
+            assert result == (MockAPI, MockAPI.do_any, ["owner1", "repo2", "333", "444"]), "result=%r" % (result,)
+        elif urlpath == "/api/teams/12345/memberships/username1":
+            assert result == (MockAPI, MockAPI.do_any, ["12345", "username1"]), "result=%r" % (result,)
+        else:
+            assert False, "urlpath=%r" % (urlpath,)
     else:
         raise Exception("%s : Unknonw benchmark type." % (benchtype,))
 
