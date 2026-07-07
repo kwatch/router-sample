@@ -101,20 +101,18 @@ class Router(object):
         arr.append(end)
         return re.compile("".join(arr)), param_names, param_funcs
 
-    def _date(s):
-        try:
-            yr, mo, dy = s.split('-')
-            return date(int(yr), int(mo), int(dy))
-        except:
-            return None
+    def _is_valid_suffix(self, actual_suffix, expected_suffix):
+        if actual_suffix == expected_suffix:
+            return True
+        if expected_suffix == '.*':
+            return True
+        return False
 
     URLPATH_PARAM_TYPES = {
         'int'  : (r'\d+'   , int),
         'str'  : (r'[^./]+', None),
-        'date' : (r'\d\d\d\d-\d\d-\d\d', _date),
         'path' : (r'.*'    , None),
     }
-    del _date
 
     def _escape(self, s, _fn=lambda m: '\\'+m.group(0)):
         return re.sub(r'[.*+?^$|\[\]{}()]', _fn, s)
@@ -205,7 +203,7 @@ class FixedLinearRouter(Router):
 class HashedLinearRouter(Router):
     """Linear (hashed by prefix)"""
 
-    def __init__(self, mapping):
+    def __init__(self, mapping, prefix_minlength_target=re.compile(r'^/\w')):
         self._mapping_dict = {}   # for urlpath having no parameters
         self._mapping_hash = {}   # for urlpath having any parameters
         self._hashkey_len  = 0
@@ -222,15 +220,28 @@ class HashedLinearRouter(Router):
                      handler_class, handler_methods, param_names, param_funcs)
                 mapping_list.append(t)
         #
-        hashtable = self._mapping_hash
-        minlen = min( len(t[1]) for t in mapping_list )
+        x = prefix_minlength_target
+        rexp = (re.compile(r'.') if x is None else
+                re.compile(x)    if isinstance(x, str) else
+                x)
+        try:
+            minlen = min( len(t[1]) for t in mapping_list if rexp.search(t[1]) )
+        except ValueError:
+            raise RouterError("No url path matched to %r." % (rexp,))
         self._hashkey_len = minlen
+        #
+        hashtable = self._mapping_hash
         for t in mapping_list:
             path_prefix = t[1]
-            hashkey = path_prefix[0:minlen]
+            if rexp.search(path_prefix):
+                hashkey = path_prefix[0:minlen]
+            else:
+                hashkey = None
             if hashkey not in hashtable:
                 hashtable[hashkey] = []
             hashtable[hashkey].append(t)
+        if None not in hashtable:
+            hashtable[None] = []
 
     def find(self, req_path):
         tupl = self._mapping_dict.get(req_path)
@@ -238,7 +249,7 @@ class HashedLinearRouter(Router):
             return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
         hashkey = req_path[0:self._hashkey_len]
         if hashkey not in self._mapping_hash:
-            return None
+            hashkey = None
         mapping_list = self._mapping_hash[hashkey]
         for t in mapping_list:
             _, path_prefix, path_rexp, handler_class, handler_methods, _, param_funcs = t
@@ -686,7 +697,7 @@ class TrieRouter(Router):
     PARAM_TYPES = {'int': 1, 'str': 2, 'path': 3}
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
+        self._mapping_dict = {}   # for urlpath having no parameters
         self._tree_root = self.Node()
         for tupl in self._traverse(mapping):
             path_pat, handler_class, handler_methods = tupl
@@ -742,7 +753,9 @@ class TrieRouter(Router):
         #
         node = self._tree_root
         param_args = []
-        for i, item in enumerate(items):
+        i = -1
+        for item in items:
+            i += 1
             node2 = node.children.get(item)
             if node2 is not None:
                 node = node2
@@ -780,144 +793,117 @@ class TrieRouter(Router):
         if t is None:
             return None
         handler_class, handler_methods, param_names, expected_suffix = t
-        if not self._valid_suffix(suffix, expected_suffix):
+        if not self._is_valid_suffix(suffix, expected_suffix):
             return None
         return handler_class, handler_methods, param_args
 
-    def _valid_suffix(self, actual_suffix, expected_suffix):
-        if actual_suffix == expected_suffix:
-            return True
-        if expected_suffix == '.*':
-            return True
-        return False
-
 
 class StateMachineRouter(Router):
-    """StateMachine"""
+    """State machine based router"""
 
-    def _date(s):
-        a = s.split('-')
-        if len(a) != 3:
-            return None
-        yr, mo, dy = a
-        try:
-            return date(int(yr), int(mo), int(dy))
-        except:
-            return None
-    URLPATH_PARAM_TYPES = [
-        ('int'  , lambda s: (int(s) if s.isdigit() else None)),
-        #('date' , _date),
-        ('str'  , lambda s: s or None),
-        #('path' , lambda s: s),
-    ]
-    del _date
+    PARAM_TYPES = {'int': 1, 'str': 2, 'path': 3}
 
     def __init__(self, mapping):
-        self._mapping_dict = {}   # for urlpath having parameters
-        self._transition   = {}   # for urlpath having no parameters
-        ptypes = self.URLPATH_PARAM_TYPES
-        self._pkeys = { t[0]: i for i, t in enumerate(ptypes) }  # ex: {'int': 0, 'date': 1, 'str': 2}
-        self._pfuncs = [ t[1] for t in ptypes ]  # list of converter func
-        for t in self._traverse(mapping):
-            path_pat, handler_class, handler_methods = t
+        self._mapping_dict = {}   # for urlpath having no parameters
+        self._transition   = {}   # for urlpath having any parameters
+        for tupl in self._traverse(mapping):
+            path_pat, handler_class, handler_methods = tupl
             if '{' not in path_pat:
                 self._mapping_dict[path_pat] = (handler_class, handler_methods, [])
             else:
                 self._register(path_pat, handler_class, handler_methods)
 
     def _register(self, path_pat, handler_class, handler_methods):
-        items, suffix = self._split(path_pat)
+        assert path_pat.startswith('/') or not path, "** path_pat=%r" % (path_pat,)
+        path, suffix = splitext(path_pat)
+        items = path.split('/')
+        if path.startswith('/'):
+            items.pop(0)
+        #
         pnames = []
-        pkeys = self._pkeys
+        param_types = self.PARAM_TYPES
         d = self._transition
         for item in items:
-            if item and item[0] == '{' and item[-1] == '}':
-                pair = item[1:-1].split(':', 1)
-                pname = pair[0]
-                ptype = len(pair) == 2 and pair[1] or 'str'
-                if ptype not in pkeys:
+            if item and item[0] == '{' and item[-1] == '}':  # ex: "{id:int}"
+                pair = item[1:-1].split(':', 1)              # ex: ("id", "int")
+                pname = pair[0]                              # ex: "id"
+                ptype = len(pair) == 2 and pair[1] or None   # ex: "int", or None
+                if pname in pnames:
+                    raise RouterError("%s: duplicate param name %r." % (path_pat, pname))
+                pnames.append(pname)
+                if ptype is None:
+                    key = param_types['str']                 # ex: 2 (str)
+                elif ptype in param_types:
+                    key = param_types[ptype]                 # ex: 1 (int)
+                else:
                     raise RouterError("%s: unknown parameter type %r." % (path_pat, ptype))
-                key = pkeys[ptype]  # ex: 0 (int), 1 (date), 2 (str), 3 (path)
             else:
-                key = item
+                key = item                                   # ex: "users"
             if key not in d:
                 d[key] = {}
             d = d[key]
+        #
         if None in d:
             raise RouterError("%s: duplicated urlpath in %s and %s." %
-                              (path_pat, d[None][1].__name__, handler_class.__name__))
-        d[None] = (suffix, handler_class, handler_methods, pnames)
+                              (path_pat, d[None][0].__name__, handler_class.__name__))
+        d[None] = (handler_class, handler_methods, pnames, suffix)
 
-    def _split(self, path):
-        assert path.startswith('/') or not path, "** path=%r" % (path,)
-        items = path[1:].split('/')
-        basename = items[-1]
-        pos = basename.rfind('.')
-        if pos >= 0:
-            suffix = basename[pos:]
-            items[-1] = basename[:pos]
-        else:
-            suffix = None
-        return items, suffix
 
     def find(self, req_path):
-        t = self._mapping_dict.get(req_path)
-        if t:
-            return t
+        tupl = self._mapping_dict.get(req_path)
+        if tupl:
+            return tupl  # ex: (BooksAPI, {'GET':do_index, 'POST':do_create}, [])
         #
-        items, suffix = self._split(req_path)
-        pfuncs = self._pfuncs
+        path, suffix = splitext(req_path)
+        items = path.split('/')
+        if path.startswith('/'):
+            items.pop(0)
+        #
         d = self._transition
         param_args = []
+        i = -1
         for item in items:
+            i += 1
             d2 = d.get(item)
             if d2 is not None:
                 d = d2
                 continue
             #
-            #for i, pfunc in enumerate(pfuncs):
-            #    d2 = d.get(i)
-            #    if d2 is not None:
-            #        v = pfunc(item)
-            #        if v is not None:
-            #            param_args.append(v)
-            #            break
-            #else:
-            #    return None
+            d2 = d.get(1)                 # 1: int
+            if d2 is not None:
+                try:
+                    intval = int(item)
+                except ValueError:
+                    pass
+                else:
+                    if intval >= 0:
+                        param_args.append(intval)
+                        d = d2
+                        continue
             #
-            while True:
-                d2 = d.get(0)
-                if d2 is not None:
-                    v = pfuncs[0](item)
-                    if v is not None:
-                        param_args.append(v)
-                        break
-                #
-                d2 = d.get(1)
-                if d2 is not None:
-                    v = pfuncs[1](item)
-                    if v is not None:
-                        param_args.append(v)
-                        break
-                #
-                return None
+            d2 = d.get(2)                 # 2: str
+            if d2 is not None:
+                if item:
+                    param_args.append(item)
+                    d = d2
+                    continue
             #
-            d = d2
+            d2 = d.get(3)                 # 3: path
+            if d2 is not None:
+                param_args.append("/".join(items[i:]) + suffix)
+                suffix = ""
+                d = d2
+                break
+            #
+            return None
         #
         t = d.get(None)
         if t is None:
             return None
-        expected_suffix, handler_class, handler_methods, param_names = t
-        if not self._valid_suffix(suffix, expected_suffix):
+        handler_class, handler_methods, param_names, expected_suffix = t
+        if not self._is_valid_suffix(suffix, expected_suffix):
             return None
         return handler_class, handler_methods, param_args
-
-    def _valid_suffix(self, actual_suffix, expected_suffix):
-        if actual_suffix == expected_suffix:
-            return True
-        if expected_suffix == '.*':
-            return True
-        return False
 
 
 class RequestHandler(object):
