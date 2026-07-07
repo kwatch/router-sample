@@ -742,7 +742,9 @@ class TrieRouter(Router):
         #
         node = self._tree_root
         param_args = []
-        for i, item in enumerate(items):
+        i = -1
+        for item in items:
+            i += 1
             node2 = node.children.get(item)
             if node2 is not None:
                 node = node2
