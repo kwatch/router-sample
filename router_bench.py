@@ -254,7 +254,7 @@ def validate(urlpath, result):
         raise Exception("%s : Unknonw benchmark type." % (benchtype,))
 
 
-loop = 1000 * 1000
+loop = int(os.environ.get('N') or 1000 * 1000)
 width = 17 + max( len(x) for x in urlpaths )
 with Benchmarker(loop, width=width, cycle=1, extra=0) as bench:
 
