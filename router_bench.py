@@ -260,15 +260,33 @@ with Benchmarker(loop, width=width, cycle=1, extra=0) as bench:
 
     debug = bench.properties.get('debug', False)
 
+    fast_routers = {
+        HashedLinearRouter,
+        NestedRegexpRouter, OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
+        TrieRouter, StateMachineRouter,
+    }
+    faster_routers = {
+        OptimizedRegexpRouter, SlicedRegexpRouter, HashedRegexpRouter,
+        TrieRouter, StateMachineRouter,
+    }
+
     for router_class in router_classes:
         for urlpath in urlpaths:
+            #
             label = router_class.__name__.replace('Router', '')
             if router_class.__name__.startswith("Hashed"):
                 router_obj = router_class(mapping, r'^/api/\w\w')
             else:
                 router_obj = router_class(mapping)
-
-            @bench("%-15s: %-16s" % (label, urlpath))
+            #
+            if router_class in faster_routers:
+                tag = ("fast", "faster")
+            elif router_class in fast_routers:
+                tag = "fast"
+            else:
+                tag = None
+            #
+            @bench("%-15s: %-16s" % (label, urlpath), tag=tag)
             def _(bm, router=router_obj, urlpath=urlpath):
                 for _ in bm:
                     result = router.lookup('GET', urlpath)
