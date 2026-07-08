@@ -196,15 +196,15 @@ elif benchtype == "many":
 
 elif benchtype == "githubapi":
 
-    urlpaths = (
+    urlpaths = [
         #'/repos/{owner}/{repo}',
         '/repos/owner1/repo2',
         #'/repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/comments',
         '/repos/owner1/repo2/pulls/333/reviews/444/comments',
         #'/teams/{team_id}/memberships/{username}',
         '/teams/12345/memberships/username1',
-    )
-    urlpaths = tuple( "/api" + x for x in urlpaths )
+    ]
+    urlpaths = [ "/api" + x for x in urlpaths ]
 
     datafile = "data/github-api-paths.txt"
     dct = {}
