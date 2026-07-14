@@ -1,6 +1,11 @@
 
 
-task :default => :test
+task :default => :help
+
+desc "list task names"
+task :help do
+  system "rake -T"
+end
 
 
 namespace :test do
