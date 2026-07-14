@@ -1,5 +1,9 @@
 # -*- coding: utf-8 -*-
 
+##
+## Router classes for example
+##
+
 import sys, re, json
 from os.path import splitext
 from datetime import date
@@ -307,7 +311,7 @@ class NaiveRegexpRouter(Router):
         #        break
         #else:
         #    assert false, "unreachable"
-        i = int(m.lastgroup[1:])
+        i = int(m.lastgroup[1:])   # ex: m.lastgroup == "_3", i == 3
         #
         t = self._mapping_list[i]
         _, pos, n, handler_class, handler_methods, _, param_funcs = t
