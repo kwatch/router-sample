@@ -2,8 +2,19 @@
 
 task :default => :test
 
-task :test do
-  sh "python3 -m oktest tests"
+
+namespace :test do
+
+  desc "run python router test"
+  task :py do
+    sh "python3 -m oktest tests"
+  end
+
+  desc "run ruby router test"
+  task :rb do
+    sh "oktest -ss tests/ruby"
+  end
+
 end
 
 
