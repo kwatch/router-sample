@@ -8,6 +8,34 @@ task :help do
 end
 
 
+namespace :bench do
+
+  desc "run python router benchmark"
+  task :py do
+    sh "python3 router_bench.py"
+  end
+
+  desc "run ruby router benchmark"
+  task :rb do
+    sh "ruby router_bench.rb"
+  end
+
+  desc "how to run benchmark script with options"
+  task :guide do
+    puts <<END
+## for Python
+$ python3 router_bench.py -h
+$ N=1000_000 python3 router_bench.py -c 5 -x 1 -f name=~StateMachine
+
+## for Ruby
+$ ruby router_bench.rb -h
+$ N=1000_000 ruby router_bench.rb -c 5 -x 1 -F task="*StateMachine*"
+END
+  end
+
+end
+
+
 namespace :test do
 
   desc "run python router test"
