@@ -19,9 +19,11 @@ Requirements
  on Python <= 3.4 due to limitation of 're' library.
  See https://stackoverflow.com/questions/478458/ for details.)
 
+* Ruby (>= 3.0)
 
-How to run
-----------
+
+How to run (Python3)
+--------------------
 
 Install:
 
@@ -52,7 +54,40 @@ $ python3 router_bench.py -n 100000 -c 5 -x 2
 ```
 
 
+How to run (Ruby3)
+------------------
+
+Install:
+
+```
+$ ruby --version
+ruby 3.4.7
+$ mkdir gems
+$ export GEM_HOME=$PWD/gems
+$ export PATH=$GEM_HOME/bin:$PATH
+$ bundler install
+```
+
+Run:
+
+```
+$ rake                          # list tasks
+$ rake test:rb                  # run test scripts
+$ rake bench:rb                 # run benchmark
+$ rake bench:guide              # show how to run benchmark
+```
+
+Or:
+
+```
+$ oktest -sc tests/ruby         # run test scripts
+$ ruby router_bench.rb          # run benchamrk
+$ ruby router_bench.rb -h       # show options of benchmark
+$ N=1000_000 ruby router_bench.rb -c 5 -x 2
+```
+
+
 License
 -------
 
-CC0 (public domain)
+MIT-LICENSE
